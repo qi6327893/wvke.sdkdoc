@@ -1,0 +1,126 @@
+# Key Functions
+
+## Overview
+
+This section describes the current SDK APIs related to key layout and per-key configuration.
+
+## Get Keyboard Default Key Layout
+
+ServiceKeyboard.getDefaultKeyLayout()
+
+Brief: Gets the keyboard default key layout.
+
+### Parameters
+
+This method does not require parameters.
+
+### Returns
+
+- Overall type: `Promise<any>`
+- Description: Returns the default key layout data. The exact structure depends on the device layout definition.
+
+### Example
+
+```javascript
+const layout = await ServiceKeyboard.getDefaultKeyLayout();
+console.log('Default key layout:', layout);
+```
+
+## Get Key Custom Layer
+
+ServiceKeyboard.getKeyCustomLayer(layer)
+
+Brief: Gets the custom-function mapping of keys for the specified layer. Currently supports the base layer, FN1, FN2, and FN3 layers.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| layer | number | Layer value. Base layer: `0x00`, FN1 layer: `0x01`, FN2 layer: `0x02`, FN3 layer: `0x03` | Yes |
+
+### Returns
+
+- Overall type: `Promise<{ code: number, layer: number, list: Array<{ hid: string, type: string, name: string, content: string, image: string, fn_code?: string }>, layout: any[] }>`
+- Description: Returns the custom-function list for the specified layer together with the current key layout mapping. `image` is the icon resource URL for the custom function; if no icon is available for an item, this field is an empty string.
+
+### Example
+
+```javascript
+const result = await ServiceKeyboard.getKeyCustomLayer(0x00);
+console.log('Base layer custom functions:', result);
+```
+
+## Get Standard 104-Key Keyboard Layout
+
+ServiceKeyboard.getStandard104KeyLayout()
+
+Brief: Gets the standard 104-key keyboard layout. This API is a client-side helper and does not depend on a device round trip.
+
+### Parameters
+
+This method does not require parameters.
+
+### Returns
+
+- Overall type: `Promise<{ total: number, rows: Array<Array<{ row: number, col: number, hid: string, name: string, value: string, vkCode?: number, scanCode?: number }>>, list: Array<{ row: number, col: number, hid: string, name: string, value: string, vkCode?: number, scanCode?: number }> }>`
+- Description: Returns both row-based layout data and a flat list for the standard 104-key keyboard, which is useful for client-side key pickers and layout rendering.
+
+### Example
+
+```javascript
+const layout104 = await ServiceKeyboard.getStandard104KeyLayout();
+console.log('Standard 104-key layout:', layout104);
+```
+
+## Get Shortcut Function List
+
+ServiceKeyboard.getShortcutFunctionList(type)
+
+Brief: Gets the shortcut-function list for the specified type. This API is a client-side helper.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| type | string | Shortcut type. Only `system`, `mouse`, `media`, and `firmware` are supported | Yes |
+
+### Returns
+
+- Overall type: `Promise<{ type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, id: number, commandType: number, image: string }> }>`
+- Description: Returns the shortcut-function list for the given type. `code` is the original protocol code, `id` and `commandType` are parsed numeric fields, and `image` is the icon resource URL. If no icon is available for an item, this field is an empty string.
+
+### Example
+
+```javascript
+const shortcuts = await ServiceKeyboard.getShortcutFunctionList('system');
+console.log('System shortcut function list:', shortcuts);
+```
+
+## Set Key Config
+
+ServiceKeyboard.setKeyConfig(hid, layer, config)
+
+Brief: Sets the function configuration for a specific key on a specific layer.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| hid | number | Key HID Usage ID. Refer to the standard Windows HID Usage Tables. For example, the A key can use `0x04` | Yes |
+| layer | number | Layer value. Base layer: `0x00`, FN1 layer: `0x01`, FN2 layer: `0x02`, FN3 layer: `0x03` | Yes |
+| config | object | Key configuration object. `config.id` is the concrete function value and `config.type` is the modifier of that value. Refer to the protocol table for specific function description values | Yes |
+
+### Returns
+
+- Overall type: `Promise<any>`
+- Description: Returns the applied key configuration result.
+
+### Example
+
+```javascript
+const result = await ServiceKeyboard.setKeyConfig(0x04, 0x00, {
+	id: 0x05,
+	type: 0x00
+});
+console.log('Set key result:', result);
+```

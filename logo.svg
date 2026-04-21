@@ -1,0 +1,23 @@
+<svg width="360" height="72" viewBox="0 0 360 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wkGradient" x1="18" y1="10" x2="142" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A9BFF"/>
+      <stop offset="0.55" stop-color="#6947FF"/>
+      <stop offset="1" stop-color="#D85AD9"/>
+    </linearGradient>
+    <filter id="wkGlow" x="0" y="0" width="170" height="72" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feOffset dy="2"/>
+      <feGaussianBlur stdDeviation="3"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.196078 0 0 0 0 0.117647 0 0 0 0 0.552941 0 0 0 0.35 0"/>
+      <feBlend in2="SourceGraphic" result="shape"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#wkGlow)">
+    <path d="M20 14L38 58L58 28L77 58L96 18" stroke="url(#wkGradient)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M112 12V58" stroke="url(#wkGradient)" stroke-width="18" stroke-linecap="round"/>
+    <path d="M146 20L112 38L146 58" stroke="url(#wkGradient)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text x="182" y="46" fill="#182235" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="28" font-weight="700" letter-spacing="1">完客开放平台</text>
+</svg>
