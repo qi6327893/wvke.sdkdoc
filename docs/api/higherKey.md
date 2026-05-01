@@ -16,8 +16,8 @@ ServiceKeyboard.getAdvancedKeyLayout()
 
 ### 返回值
 
-• 总体类型：`Promise<{ code: number, total: number, details: any[], layout: any[] }>`
-• 描述：返回高级按键总数、高级按键详情列表，以及完整键盘布局数据。若条目存在 `custom` 配置，则其中会额外包含 `image` 字段，表示该自定义功能对应的图标资源地址。
+• 总体类型：`Promise<{ code: number, total: number, details: AdvancedKeyLayoutItem[], layout: AdvancedKeyLayoutItem[][] }>`
+• 描述：返回高级按键总数、高级按键详情列表，以及完整键盘布局数据。若条目存在 `custom` 配置，则其中会额外包含 `image` 字段，表示该自定义功能对应的图标资源地址。高级功能详情会放在 `data` 与 `custom.data` 中，便于直接读取结构化配置。
 
 ### 字段说明
 
@@ -25,8 +25,30 @@ ServiceKeyboard.getAdvancedKeyLayout()
 |------|------|
 | code | 接口状态码，0 表示成功 |
 | total | 当前识别到的高级按键数量 |
-| details | 高级按键详情列表（按模式过滤后，`custom.image` 为自定义功能图标地址） |
-| layout | 当前键盘完整布局（含 working_mode 与 custom 信息；若存在 `custom`，则附带 `custom.image`） |
+| details | 高级按键详情列表（按模式过滤后，`custom.image` 为自定义功能图标地址，`data` 为结构化详情） |
+| layout | 当前键盘完整布局（含 working_mode 与 custom 信息；若存在 `custom`，则附带 `custom.image` 与 `custom.data`） |
+
+### 高级功能详情
+
+SOCD 条目的 `data` / `custom.data` 包含以下字段：
+
+| 字段 | 含义 |
+|------|------|
+| mode | SOCD 模式值，`0` 后输入优先，`1` 绝对优先，`2` 中性模式 |
+| delay | SOCD 延迟值 |
+| keyName / keyName2 | 两个配对按键名称 |
+| hid / hid2 | 两个配对按键 HID |
+| keys | 配对按键列表 |
+
+DKS 条目的 `data` / `custom.data` 包含以下字段：
+
+| 字段 | 含义 |
+|------|------|
+| keyName / hid | 触发键名称与 HID |
+| kcs | 4 个任务键 HID 数值 |
+| trps | 4 个任务键的触发粒度数值 |
+| dbs | DKS 附加行程数据 |
+| tasks | 4 个任务键详情，每项包含 `keyName`、`hid`、`trps`、`trpsBits`、`trpsText` |
 
 ### 使用示例
 

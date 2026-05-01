@@ -16,8 +16,8 @@ This method does not require parameters.
 
 ### Returns
 
-- Overall type: `Promise<{ code: number, total: number, details: any[], layout: any[] }>`
-- Description: Returns total advanced keys, the advanced-key detail list, and the full keyboard layout data. If an item contains `custom` configuration, that object now also includes an `image` field with the icon resource URL.
+- Overall type: `Promise<{ code: number, total: number, details: AdvancedKeyLayoutItem[], layout: AdvancedKeyLayoutItem[][] }>`
+- Description: Returns total advanced keys, the advanced-key detail list, and the full keyboard layout data. If an item contains `custom` configuration, that object now also includes an `image` field with the icon resource URL. Advanced-key details are exposed on both `data` and `custom.data` for direct structured access.
 
 ### Fields
 
@@ -25,8 +25,30 @@ This method does not require parameters.
 |------|------|
 | code | API status code, 0 means success |
 | total | Number of advanced keys detected |
-| details | Advanced-key detail list (filtered by mode, with `custom.image` when custom config exists) |
-| layout | Full keyboard layout including working_mode and custom info; if `custom` exists, it also carries `custom.image` |
+| details | Advanced-key detail list (filtered by mode, with `custom.image` and structured `data` when custom config exists) |
+| layout | Full keyboard layout including working_mode and custom info; if `custom` exists, it also carries `custom.image` and `custom.data` |
+
+### Advanced Detail Data
+
+SOCD items expose these fields on `data` / `custom.data`:
+
+| Field | Meaning |
+|------|------|
+| mode | SOCD mode value: `0` later-input priority, `1` absolute priority, `2` neutral |
+| delay | SOCD delay value |
+| keyName / keyName2 | The paired key names |
+| hid / hid2 | The paired key HID values |
+| keys | Paired key list |
+
+DKS items expose these fields on `data` / `custom.data`:
+
+| Field | Meaning |
+|------|------|
+| keyName / hid | Trigger key name and HID |
+| kcs | Four task-key HID values |
+| trps | Four task trigger granularity values |
+| dbs | Additional DKS travel data |
+| tasks | Four task details, each with `keyName`, `hid`, `trps`, `trpsBits`, and `trpsText` |
 
 ### Example
 

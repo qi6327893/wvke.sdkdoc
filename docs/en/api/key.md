@@ -98,7 +98,7 @@ console.log('System shortcut function list:', shortcuts);
 
 ## Set Key Config
 
-ServiceKeyboard.setKeyConfig(hid, layer, config)
+ServiceKeyboard.setKeyConfig(keyName, layer, config)
 
 Brief: Sets the function configuration for a specific key on a specific layer.
 
@@ -106,7 +106,7 @@ Brief: Sets the function configuration for a specific key on a specific layer.
 
 | Field | Type | Description | Required |
 |------|------|------|----------|
-| hid | number | Key HID Usage ID. Refer to the standard Windows HID Usage Tables. For example, the A key can use `0x04` | Yes |
+| keyName | string | Key name, for example `A`, `B`, `Esc`, or `Space`. The SDK resolves the HID from the key name automatically | Yes |
 | layer | number | Layer value. Base layer: `0x00`, FN1 layer: `0x01`, FN2 layer: `0x02`, FN3 layer: `0x03` | Yes |
 | config | object | Key configuration object. `config.id` is the concrete function value and `config.type` is the modifier of that value. Refer to the protocol table for specific function description values | Yes |
 
@@ -118,7 +118,7 @@ Brief: Sets the function configuration for a specific key on a specific layer.
 ### Example
 
 ```javascript
-const result = await ServiceKeyboard.setKeyConfig(0x04, 0x00, {
+const result = await ServiceKeyboard.setKeyConfig('A', 0x00, {
 	id: 0x05,
 	type: 0x00
 });

@@ -100,13 +100,13 @@ console.log('Keyboard travel configuration:', performance);
 
 ServiceKeyboard.setPerformance(params)
 
-Brief: Sets the travel configuration for a specific key, including working mode, trigger position, RT switch, RT trigger position, RT down, RT up, top safe zone, and bottom safe zone. Any omitted fields are automatically filled from the current key defaults and sent together in the same call.
+Brief: Sets the travel configuration for a single key, including working mode, trigger position, RT switch, RT trigger position, RT down, RT up, top safe zone, and bottom safe zone. Any omitted fields are automatically filled from the key's current defaults and sent together in the same call.
 
 ### Parameters
 
 | Field | Type | Description | Required |
 |------|------|------|----------|
-| keyName | string | Key name, for example A | Yes |
+| keyName | string | Key name, for example `A` | Yes |
 | workingMode | number | Key working mode | No |
 | triggerPosition | number | Trigger position | No |
 | rtSwitch | number | Per-key RT switch, 0 off and 1 on | No |

@@ -100,13 +100,13 @@ console.log('键盘行程配置:', performance);
 
 ServiceKeyboard.setPerformance(params)
 
-简要描述：设置指定按键的行程配置，包含设置按键工作模式、触发位置、按键 RT 开关、触发 RT 位置、RT 按下、RT 弹起、顶部安全区、底部安全区。未传字段会自动读取当前按键默认值，并在同一次调用里一并下发。
+简要描述：设置单个按键的行程配置，包含设置按键工作模式、触发位置、按键 RT 开关、触发 RT 位置、RT 按下、RT 弹起、顶部安全区、底部安全区。未传字段会自动读取当前按键默认值，并在同一次调用里一并下发。
 
 ### 参数
 
 | 字段 | 类型 | 描述 | 是否必需 |
 |------|------|------|----------|
-| keyName | string | 按键名称，例如 A | 是 |
+| keyName | string | 按键名称，例如 `A` | 是 |
 | workingMode | number | 按键工作模式 | 否 |
 | triggerPosition | number | 触发位置 | 否 |
 | rtSwitch | number | 按键 RT 开关，0 为关闭，1 为开启 | 否 |
@@ -142,16 +142,48 @@ console.log('设置结果:', result);
 
 ServiceKeyboard.getADCSample()
 
-简要描述：获取整个键盘的 ADC 实时采样数据、实时行程数据和按键实时状态快照。该接口适合前端定时轮询，用于展示实时按下状态变化。
+简要描述：获取整个键盘的 ADC 实时采样数据、实时行程数据和按键实时状态快照。接口内部会按顺序读取整张矩阵的行程数据、ADC 原始值和按键状态，并整理成可直接用于键盘 UI 渲染的结构。该接口适合前端定时轮询，用于展示实时按下状态变化。
 
 ### 参数
 
 无
 
-### 返回值
+### 返回说明
 
-• 总体类型：`Promise<{ adc: number, data: number[], journeyData: number[], keyStatusData: number[], maxJourney: number, maxKeyStatus: number, pressedCount: number, total: number, details: Array, layout: Array }>`
-• 描述：返回 ADC 实时采样数据、实时行程数据、按键状态，以及可直接用于键盘 UI 渲染的 `details` 与 `layout`。
+返回对象字段说明：
+
+• `adc`: 当前整张键盘里采集到的最大 ADC 原始值
+• `data`: 整张键盘的 ADC 原始值数组，顺序与固件矩阵顺序一致
+• `journeyData`: 整张键盘的实时行程数组，单位为 `mm`
+• `keyStatusData`: 整张键盘的实时按键状态数组，通常 `0` 表示抬起，非 `0` 表示按下
+• `maxJourney`: 当前整张键盘里采集到的最大实时行程值，单位为 `mm`
+• `maxKeyStatus`: 当前最大行程对应的按键状态值
+• `pressedCount`: 当前判定为按下状态的按键数量
+• `total`: 当前布局中参与统计的有效按键数量
+• `details`: 平铺后的按键详情数组，适合表格或列表渲染
+• `layout`: 保留键盘行列结构的二维数组，适合直接渲染键盘图
+
+### details / layout 单项字段说明
+
+`details` 和 `layout` 中的每个有效按键对象都包含以下字段：
+
+• `row`: 行索引，从 `0` 开始
+• `col`: 列索引，从 `0` 开始
+• `keyName`: 按键显示名称
+• `name`: 按键名称，通常与 `keyName` 一致
+• `hid`: 按键 HID，格式如 `0x04`
+• `journey`: 当前实时行程，单位为 `mm`
+• `adc`: 当前 ADC 原始值
+• `keyStatus`: 当前按键状态值
+• `pressed`: 是否判定为按下，等价于 `keyStatus > 0`
+
+### 重点说明
+
+• 这是快照式读取接口，每次调用返回的是“当前这一刻”的整张键盘状态，不会像 `getKeyboardBacklightCustom()` 那样自动持续上报。
+• 如果前端要做实时可视化，建议自行定时轮询，例如每 `100ms` 到 `300ms` 读取一次，具体频率按页面性能和设备负载权衡。
+• `journeyData`、`keyStatusData` 和 `data` 更适合底层调试；如果是做 UI，优先使用已经整理好的 `details` 或 `layout`。
+• `layout` 会保留键盘原始排布，适合直接绘制键盘图；`details` 是平铺结果，适合统计、筛选和表格展示。
+• 在高频轮询场景中，建议页面离开后及时停止定时器，避免持续占用 HID 通道。
 
 ### 使用示例
 
@@ -159,7 +191,72 @@ ServiceKeyboard.getADCSample()
 const adc = await ServiceKeyboard.getADCSample();
 console.log('ADC 采样数据:', adc);
 console.log('当前按下键数量:', adc.pressedCount);
+console.log('最大行程:', adc.maxJourney);
+console.log('第一个按键详情:', adc.details[0]);
 ```
+
+示例输出结构：
+
+```javascript
+{
+	code: 0,
+	adc: 3210,
+	maxJourney: 3.72,
+	maxKeyStatus: 1,
+	pressedCount: 2,
+	total: 61,
+	data: [110, 95, 3210],
+	journeyData: [0, 0.12, 3.72],
+	keyStatusData: [0, 0, 1],
+	details: [
+		{
+			row: 0,
+			col: 0,
+			keyName: 'Esc',
+			name: 'Esc',
+			hid: '0x29',
+			journey: 0,
+			adc: 110,
+			keyStatus: 0,
+			pressed: false
+		}
+	],
+	layout: [[/* 保留键盘排布的二维数组 */]]
+}
+```
+
+### 轮询示例
+
+```javascript
+let timer = null;
+
+const pollAdcSample = async () => {
+	try {
+		const snapshot = await ServiceKeyboard.getADCSample();
+		console.log('当前按下键数量:', snapshot.pressedCount);
+		console.log('当前最大 ADC:', snapshot.adc);
+		// 在这里刷新键盘 UI
+	} catch (error) {
+		console.error('读取 ADC 采样失败:', error);
+	}
+};
+
+await pollAdcSample();
+timer = setInterval(pollAdcSample, 200);
+
+// 页面销毁时清理
+clearInterval(timer);
+```
+
+### 调试工具实操
+
+• 先在调试工具中调用 `init` 完成设备初始化。
+• 在左侧选择 `getADCSample`。
+• 点击一次 `调用`，可读取当前整张键盘的 ADC、实时行程和按下状态快照。
+• 点击 `开始监听` 后，调试工具会定时轮询 `getADCSample`，并把实时按下状态同步到键盘图。
+• 页面中的“实时采样键盘图”会高亮当前按下按键，并展示每个键的实时行程、ADC 和状态。
+• 页面下方还会显示按下键数、最大行程、最大 ADC 等汇总信息，以及原始 JSON 结果，便于协议调试。
+• 不再需要实时预览时，点击 `停止监听`，避免继续轮询设备。
 
 ## 相关分类
 

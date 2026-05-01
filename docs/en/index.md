@@ -38,9 +38,10 @@ Built for gaming mice, with support for:
 - Full lighting control APIs
 - Key mapping and macro APIs
 - Mouse DPI and button mapping APIs
+- General custom upgrade service
 - Detailed API documentation
 
-## Quick Start
+## Tutorial
 
 ```bash
 npm install wvke-sdk
@@ -90,3 +91,33 @@ await mouse.init(devices[0].id);
 const dpi = await mouse.getDPI();
 console.log('Current DPI:', dpi.value);
 ```
+
+## General Custom Upgrade Example
+
+```javascript
+import { ServiceFirmwareUpgrade } from 'wvke-sdk';
+
+const filters = [{ vendorId: 0x1caa, productId: 0x0806, usagePage: 0xffa0, usage: 0x01 }];
+
+const [device] = await navigator.hid.requestDevice({ filters });
+if (!device.opened) {
+	await device.open();
+}
+
+const firmwareUpgrade = new ServiceFirmwareUpgrade();
+
+await firmwareUpgrade.enterBoot(device);
+
+const [bootDevice] = await navigator.hid.requestDevice({ filters });
+if (!bootDevice.opened) {
+	await bootDevice.open();
+}
+
+// Local paths can point to .bin files that the current site can fetch.
+await firmwareUpgrade.upgrade(bootDevice, '/firmware/example.bin');
+
+// Remote firmware paths must use HTTPS.
+await firmwareUpgrade.upgrade(bootDevice, 'https://example.com/firmware/example.bin');
+```
+
+For complete options, progress callbacks, and debug-tool usage, see [General Custom Upgrade API](./api/firmware-upgrade.md).

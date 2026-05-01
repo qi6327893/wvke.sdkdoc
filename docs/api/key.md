@@ -98,7 +98,7 @@ console.log('system 快捷键功能列表:', shortcuts);
 
 ## 设置单个按键功能
 
-ServiceKeyboard.setKeyConfig(hid, layer, config)
+ServiceKeyboard.setKeyConfig(keyName, layer, config)
 
 简要描述：设置指定按键在指定层级下的功能配置。
 
@@ -106,7 +106,7 @@ ServiceKeyboard.setKeyConfig(hid, layer, config)
 
 | 字段 | 类型 | 描述 | 是否必需 |
 |------|------|------|----------|
-| hid | number | 按键 HID Usage ID，参考标准 Windows HID Usage Tables，例如 A 键可使用 `0x04` | 是 |
+| keyName | string | 按键名称，例如 `A`、`B`、`Esc` 或 `Space`。SDK 会根据按键名称自动解析对应 HID | 是 |
 | layer | number | 层级值。基本层：`0x00`，FN1 层：`0x01`，FN2 层：`0x02`，FN3 层：`0x03` | 是 |
 | config | object | 按键配置对象。`config.id` 为具体功能值，`config.type` 为功能值的修饰符；具体功能描述值请参考协议表 | 是 |
 
@@ -118,7 +118,7 @@ ServiceKeyboard.setKeyConfig(hid, layer, config)
 ### 使用示例
 
 ```javascript
-const result = await ServiceKeyboard.setKeyConfig(0x04, 0x00, {
+const result = await ServiceKeyboard.setKeyConfig('A', 0x00, {
 	id: 0x05,
 	type: 0x00
 });
