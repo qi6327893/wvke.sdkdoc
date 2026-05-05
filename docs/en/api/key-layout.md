@@ -66,15 +66,16 @@ Brief: Returns the shortcut catalog for a specific type. This method is also imp
 
 | Field | Type | Description | Required |
 |------|------|------|----------|
-| type | string | Only `system`, `mouse`, `media`, and `firmware` are supported | Yes |
+| type | string | Only `system`, `mouse`, `media`, `firmware`, and `hotkey` are supported | Yes |
 
 ### Returns
 
-- Overall type: `Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, id: number, commandType: number, image: string }> }>`
+- Overall type: `Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: number, commandType: number, image: string }> }>`
 
 - Notes:
 
 - `code` is the original protocol value.
+- `task` is the hotkey combination and is populated for `hotkey` items.
 - `id` and `commandType` are parsed numeric fields for frontend usage.
 - `image` is the icon URL, or an empty string when no icon exists.
 

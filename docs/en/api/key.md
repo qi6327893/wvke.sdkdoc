@@ -82,18 +82,43 @@ Brief: Gets the shortcut-function list for the specified type. This API is a cli
 
 | Field | Type | Description | Required |
 |------|------|------|----------|
-| type | string | Shortcut type. Only `system`, `mouse`, `media`, and `firmware` are supported | Yes |
+| type | string | Shortcut type. Only `system`, `mouse`, `media`, `firmware`, and `hotkey` are supported | Yes |
 
 ### Returns
 
-- Overall type: `Promise<{ type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, id: number, commandType: number, image: string }> }>`
-- Description: Returns the shortcut-function list for the given type. `code` is the original protocol code, `id` and `commandType` are parsed numeric fields, and `image` is the icon resource URL. If no icon is available for an item, this field is an empty string.
+- Overall type: `Promise<{ type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: number, commandType: number, image: string }> }>`
+- Description: Returns the shortcut-function list for the given type. `code` is the original protocol code, `task` is the hotkey combination for `hotkey` items, `id` and `commandType` are parsed numeric fields, and `image` is the icon resource URL. If no icon is available for an item, this field is an empty string.
 
 ### Example
 
 ```javascript
 const shortcuts = await ServiceKeyboard.getShortcutFunctionList('system');
 console.log('System shortcut function list:', shortcuts);
+```
+
+## Get Custom Hotkey CODE
+
+ServiceKeyboard.getHotKeyCodeCustom(hotKey)
+
+Brief: Gets the protocol CODE from a custom hotkey combination. This API is a client-side helper and supports one or multiple modifier keys.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| hotKey | string | Hotkey combination, such as `Ctrl+C`, `Ctrl+Shift+S`, or `Ctrl+Alt+Delete`. Supported modifiers are `Ctrl`, `Shift`, `Alt`, and `Win` | Yes |
+
+### Returns
+
+- Overall type: `Promise<{ code: number, hotKey: string, keyName: string, modifiers: string[], shortcutCode: string, id: number, commandType: number, key: string, modifier: string, config: { id: string, type: string } }>`
+- Description: `shortcutCode` is the displayable protocol CODE such as `0x06,0x61`; `id` is the numeric HID value for the normal key; `commandType` is the hotkey modifier protocol value; `config` can be passed directly as the third parameter of `setKeyConfig`.
+
+### Example
+
+```javascript
+const hotKeyCode = await ServiceKeyboard.getHotKeyCodeCustom('Ctrl+Alt+Delete');
+console.log('Custom hotkey CODE:', hotKeyCode.shortcutCode);
+await ServiceKeyboard.setKeyConfig('A', '0x00', hotKeyCode.config);
 ```
 
 ## Set Key Config

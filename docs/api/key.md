@@ -82,18 +82,43 @@ ServiceKeyboard.getShortcutFunctionList(type)
 
 | 字段 | 类型 | 描述 | 是否必需 |
 |------|------|------|----------|
-| type | string | 快捷键类型，只支持 `system`、`mouse`、`media`、`firmware` | 是 |
+| type | string | 快捷键类型，只支持 `system`、`mouse`、`media`、`firmware`、`hotkey` | 是 |
 
 ### 返回值
 
-• 总体类型：`Promise<{ type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, id: number, commandType: number, image: string }> }>`
-• 描述：返回指定类型的快捷键功能列表，其中 `code` 为原始协议值，`id` 与 `commandType` 为拆解后的数值字段，`image` 为对应图标资源地址；若当前项没有可用图标，则返回空字符串。
+• 总体类型：`Promise<{ type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: number, commandType: number, image: string }> }>`
+• 描述：返回指定类型的快捷键功能列表，其中 `code` 为原始协议值，`task` 为热键组合（仅 `hotkey` 类型有值，例如 `Ctrl+C`），`id` 与 `commandType` 为拆解后的数值字段，`image` 为对应图标资源地址；若当前项没有可用图标，则返回空字符串。
 
 ### 使用示例
 
 ```javascript
 const shortcuts = await ServiceKeyboard.getShortcutFunctionList('system');
 console.log('system 快捷键功能列表:', shortcuts);
+```
+
+## 获取自定义快捷键 CODE
+
+ServiceKeyboard.getHotKeyCodeCustom(hotKey)
+
+简要描述：通过自定义快捷键组合获取协议 CODE。该接口为客户端封装功能，支持单个修饰键和多个修饰键组合。
+
+### 参数
+
+| 字段 | 类型 | 描述 | 是否必需 |
+|------|------|------|----------|
+| hotKey | string | 快捷键组合，例如 `Ctrl+C`、`Ctrl+Shift+S`、`Ctrl+Alt+Delete`。修饰键支持 `Ctrl`、`Shift`、`Alt`、`Win` | 是 |
+
+### 返回值
+
+• 总体类型：`Promise<{ code: number, hotKey: string, keyName: string, modifiers: string[], shortcutCode: string, id: number, commandType: number, key: string, modifier: string, config: { id: string, type: string } }>`
+• 描述：`shortcutCode` 是可展示的协议 CODE，例如 `0x06,0x61`；`id` 是普通按键 HID 数值；`commandType` 是热键修饰符协议值；`config` 可直接作为 `setKeyConfig` 的第三个参数使用。
+
+### 使用示例
+
+```javascript
+const hotKeyCode = await ServiceKeyboard.getHotKeyCodeCustom('Ctrl+Alt+Delete');
+console.log('自定义快捷键 CODE:', hotKeyCode.shortcutCode);
+await ServiceKeyboard.setKeyConfig('A', '0x00', hotKeyCode.config);
 ```
 
 ## 设置单个按键功能

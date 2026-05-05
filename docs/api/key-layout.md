@@ -76,15 +76,16 @@ ServiceKeyboard.getShortcutFunctionList(type)
 
 | 字段 | 类型 | 描述 | 是否必需 |
 |------|------|------|----------|
-| type | string | 功能分类，只支持 `system`、`mouse`、`media`、`firmware` | 是 |
+| type | string | 功能分类，只支持 `system`、`mouse`、`media`、`firmware`、`hotkey` | 是 |
 
 ### 返回值
 
-• 总体类型：`Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, id: number, commandType: number, image: string }> }>`
+• 总体类型：`Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: number, commandType: number, image: string }> }>`
 
 • 描述：
 
 - `code` 是原始协议值。
+- `task` 是热键组合，仅 `hotkey` 类型有值。
 - `id` 与 `commandType` 是便于前端直接处理的拆解字段。
 - `image` 为功能图标资源地址；无图标时为空字符串。
 
