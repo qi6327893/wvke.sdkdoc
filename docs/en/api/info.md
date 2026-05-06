@@ -147,6 +147,94 @@ TIP
 • The SDK automatically converts common string inputs to the corresponding protocol value.
 • After setting the polling rate, it is recommended to call `ServiceKeyboard.getRateOfReturn()` again to confirm the result.
 
+## Start Global Active Report Listener
+
+ServiceKeyboard.startGlobalReportListener(options)
+
+Brief description: Listens for keyboard active reports for profile switching, keyboard backlight base changes, and logo lighting base changes.
+
+The return value of `startGlobalReportListener()` only indicates whether the listener is enabled. Real-time report data is delivered through `on('keyboardGlobalReport', callback)` or the specific event callbacks below.
+
+### Parameters
+
+| Parameter | Type | Description | Required |
+|------|------|------|------|
+| options | object | Optional settings. Set `includeCommandResponses` to `true` to also emit responses produced by SDK commands. Defaults to `false`. | No |
+
+### Events
+
+| Event | Description |
+|------|------|
+| keyboardGlobalReport | All recognized global active reports. |
+| keyboardConfigChange | Profile slot change report, including `configIndex`, `configName`, and `value`. |
+| keyboardLightingChange | Keyboard backlight base report, including `mode`, `childMode`, `luminance`, `speed`, and `sleep`. |
+| keyboardLogoLightingChange | Logo lighting base report, including `mode`, `luminance`, `speed`, and `sleep`. |
+
+### Example
+
+```javascript
+const handleGlobalReport = (report) => {
+	console.log('Keyboard global active report:', report);
+};
+
+ServiceKeyboard.on('keyboardGlobalReport', handleGlobalReport);
+
+ServiceKeyboard.on('keyboardConfigChange', (report) => {
+	console.log('Current profile:', report.configIndex);
+});
+
+ServiceKeyboard.on('keyboardLightingChange', (report) => {
+	console.log('Lighting mode/brightness/speed:', report.mode, report.luminance, report.speed);
+});
+
+ServiceKeyboard.startGlobalReportListener();
+
+// Stop listening and remove the business callback when real-time data is no longer needed.
+ServiceKeyboard.stopGlobalReportListener();
+ServiceKeyboard.off('keyboardGlobalReport', handleGlobalReport);
+```
+
+### Report Examples
+
+Profile change report:
+
+```json
+{
+	"code": 0,
+	"type": "config",
+	"configIndex": 2,
+	"configName": "Config2",
+	"value": 2
+}
+```
+
+Keyboard backlight base report:
+
+```json
+{
+	"code": 0,
+	"type": "lighting",
+	"mode": 1,
+	"modeLabel": "Static Mode",
+	"childMode": 0,
+	"luminance": 3,
+	"speed": 4,
+	"sleep": 15
+}
+```
+
+## Stop Global Active Report Listener
+
+ServiceKeyboard.stopGlobalReportListener()
+
+Brief description: Stops the keyboard active report listener started by `startGlobalReportListener()`.
+
+### Example
+
+```javascript
+ServiceKeyboard.stopGlobalReportListener();
+```
+
 ## Get Sleep Timeout
 
 ServiceKeyboard.getLightingSleepTime()

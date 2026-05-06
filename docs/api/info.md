@@ -147,6 +147,94 @@ TIP
 • SDK 会自动把常见字符串输入转换为对应协议值。
 • 设置回报率后，建议再次调用 `ServiceKeyboard.getRateOfReturn()` 进行确认。
 
+## 开启主动上报全局监听
+
+ServiceKeyboard.startGlobalReportListener(options)
+
+简要描述: 监听键盘主动上报的配置切换、键盘背光基础参数变化和 Logo 灯基础参数变化。
+
+`startGlobalReportListener()` 的返回值只表示监听是否已开启；实时上报数据通过 `on('keyboardGlobalReport', callback)` 或下方具体事件回调获取。
+
+### 参数
+
+| 参数 | 类型 | 描述 | 是否必需 |
+|------|------|------|------|
+| options | object | 可选配置。`includeCommandResponses` 为 `true` 时也会派发 SDK 主动发命令产生的响应；默认 `false`。 | 否 |
+
+### 事件
+
+| 事件名 | 描述 |
+|------|------|
+| keyboardGlobalReport | 所有已识别的全局主动上报。 |
+| keyboardConfigChange | 配置槽位切换上报，包含 `configIndex`、`configName`、`value`。 |
+| keyboardLightingChange | 键盘背光基础参数上报，包含 `mode`、`childMode`、`luminance`、`speed`、`sleep`。 |
+| keyboardLogoLightingChange | Logo 灯基础参数上报，包含 `mode`、`luminance`、`speed`、`sleep`。 |
+
+### 使用示例
+
+```javascript
+const handleGlobalReport = (report) => {
+  console.log('键盘全局主动上报:', report);
+};
+
+ServiceKeyboard.on('keyboardGlobalReport', handleGlobalReport);
+
+ServiceKeyboard.on('keyboardConfigChange', (report) => {
+  console.log('当前配置:', report.configIndex);
+});
+
+ServiceKeyboard.on('keyboardLightingChange', (report) => {
+  console.log('灯光模式/亮度/速度:', report.mode, report.luminance, report.speed);
+});
+
+ServiceKeyboard.startGlobalReportListener();
+
+// 不再需要实时数据时关闭监听，并移除业务侧回调。
+ServiceKeyboard.stopGlobalReportListener();
+ServiceKeyboard.off('keyboardGlobalReport', handleGlobalReport);
+```
+
+### 上报示例
+
+配置切换上报：
+
+```json
+{
+  "code": 0,
+  "type": "config",
+  "configIndex": 2,
+  "configName": "Config2",
+  "value": 2
+}
+```
+
+键盘背光基础参数上报：
+
+```json
+{
+  "code": 0,
+  "type": "lighting",
+  "mode": 1,
+  "modeLabel": "静态模式",
+  "childMode": 0,
+  "luminance": 3,
+  "speed": 4,
+  "sleep": 15
+}
+```
+
+## 关闭主动上报全局监听
+
+ServiceKeyboard.stopGlobalReportListener()
+
+简要描述: 关闭通过 `startGlobalReportListener()` 开启的键盘主动上报全局监听。
+
+### 使用示例
+
+```javascript
+ServiceKeyboard.stopGlobalReportListener();
+```
+
 ## 获取休眠时间
 
 ServiceKeyboard.getLightingSleepTime()

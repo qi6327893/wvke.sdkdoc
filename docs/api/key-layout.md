@@ -1,42 +1,80 @@
-# 键位布局与快捷功能
+# 功能数据接口
 
 ## 概述
 
-这组接口对应当前 SDK 里新增出来的一类客户端能力：键位布局读取、层级映射读取，以及快捷功能清单查询。它们和“设置单键功能”不同，主要用于前端渲染键盘 UI、构建功能选择器、做键位面板初始化。
+这组接口对应当前 SDK 里的客户端数据能力：标准键盘布局读取、快捷功能清单查询，以及客户端可直接缓存和渲染的轴体清单。它们和“设置单键功能”不同，主要用于前端渲染键盘 UI、构建功能选择器、做键位面板初始化。
 
 本分类当前包含以下接口：
 
-- `ServiceKeyboard.getKeyCustomLayer(layer)`
 - `ServiceKeyboard.getStandard104KeyLayout()`
 - `ServiceKeyboard.getShortcutFunctionList(type)`
+- `ServiceKeyboard.getFineTuneAxisList()`
+- `ServiceKeyboard.getKeyboardBacklightEffectList()`
+- `ServiceKeyboard.getAmbientLightEffectList()`
 
-## 获取按键自定义层功能
+## 获取支持的背光灯效列表接口（客户端功能）
 
-ServiceKeyboard.getKeyCustomLayer(layer)
+ServiceKeyboard.getKeyboardBacklightEffectList()
 
-简要描述：获取指定层级的按键自定义功能映射，当前支持基本层、FN1、FN2、FN3 层。
+简要描述：返回当前 SDK 内置支持的键盘背光主模式与子模式列表，便于客户端直接渲染下拉框、灯效面板或模式映射表。
 
 ### 参数
 
-| 字段 | 类型 | 描述 | 是否必需 |
-|------|------|------|----------|
-| layer | number | 层级值。基本层：`0x00`，FN1 层：`0x01`，FN2 层：`0x02`，FN3 层：`0x03` | 是 |
+此方法不需要参数。
 
-### 返回值
+### 返回说明
 
-• 总体类型：`Promise<{ code: number, layer: number, list: Array<{ hid: string, type: string, name: string, content: string, image: string, fn_code?: string }>, layout: any[] }>`
+返回对象字段说明：
 
-• 描述：
+• `total`: 支持的背光主模式总数
+• `list`: 背光灯效列表
 
-- `list` 返回当前层的扁平化功能列表。
-- `layout` 返回可直接用于键盘 MAP 渲染的二维结构。
-- `image` 为对应功能图标资源地址；如果当前项没有图标，则为空字符串。
+`list` 中每一项包含：
+
+• `mode`: 背光主模式值
+• `label`: 背光主模式名称
+• `childModes`: 当前主模式支持的子模式列表
+
+`childModes` 中每一项包含：
+
+• `value`: 子模式值，从 `1` 开始
+• `label`: 子模式名称
 
 ### 使用示例
 
 ```javascript
-const baseLayer = await ServiceKeyboard.getKeyCustomLayer(0x00);
-console.log('基础层功能映射:', baseLayer);
+const backlightEffects = await ServiceKeyboard.getKeyboardBacklightEffectList();
+console.log('支持的背光灯效列表:', backlightEffects);
+```
+
+## 获取支持的氛围灯灯效列表接口（客户端功能）
+
+ServiceKeyboard.getAmbientLightEffectList()
+
+简要描述：返回当前 SDK 内置支持的氛围灯 / Logo 灯主模式列表，便于客户端直接渲染模式选择器。没有 Logo 灯的键盘，也可以把该接口结果当作静态能力表使用。
+
+### 参数
+
+此方法不需要参数。
+
+### 返回说明
+
+返回对象字段说明：
+
+• `total`: 支持的氛围灯主模式总数
+• `list`: 氛围灯灯效列表
+
+`list` 中每一项包含：
+
+• `mode`: 氛围灯主模式值
+• `label`: 氛围灯主模式名称
+• `alias`: 协议别名，如 `L0` 到 `L9`
+
+### 使用示例
+
+```javascript
+const ambientEffects = await ServiceKeyboard.getAmbientLightEffectList();
+console.log('支持的氛围灯灯效列表:', ambientEffects);
 ```
 
 ## 获取标准 104 键盘布局
@@ -96,10 +134,40 @@ const mediaShortcuts = await ServiceKeyboard.getShortcutFunctionList('media');
 console.log('媒体功能列表:', mediaShortcuts.list);
 ```
 
+## 获取支持精调的轴体列表
+
+ServiceKeyboard.getFineTuneAxisList()
+
+简要描述：返回当前 SDK 内支持精调的轴体清单。该接口属于驱动客户端功能，适合客户端提前加载并缓存，用于轴体选择器、轴体资料展示或轴体参数面板。
+
+### 参数
+
+无
+
+### 返回值
+
+• 总体类型：`Promise<{ code: number, total: number, list: Array<{ axis: number, brand: string, name: string, model: string, axisRangeMax: number, axisCoefficient: number, images: { icon: string, z_b: string, z_y: string } }> }>`
+
+• 描述：
+
+- `axis` 是轴体索引，可用于 `setKeyCustomAxis(params)` 的 `axis` 字段。
+- `brand` / `name` / `model` 可用于客户端展示轴体品牌、名称和型号。
+- `axisRangeMax` / `axisCoefficient` 是轴体默认参数，可作为自定义轴体配置的参考值。
+- `images` 返回轴体图标和结构图片资源地址。
+
+### 使用示例
+
+```javascript
+const fineTuneAxisList = await ServiceKeyboard.getFineTuneAxisList();
+console.log('支持精调的轴体:', fineTuneAxisList.list);
+```
+
 ## 使用建议
 
 TIP
 
-- 做键位编辑器初始化时，通常先读取 `getStandard104KeyLayout()` 或设备真实布局，再结合 `getKeyCustomLayer()` 渲染当前层。
+- 做键位编辑器初始化时，可先读取 `getStandard104KeyLayout()` 作为标准键盘布局基础。
 - 做快捷功能选择器时，建议按 `system`、`mouse`、`media`、`firmware` 分组缓存 `getShortcutFunctionList()` 结果，避免重复请求。
-- 这几个接口都是“渲染辅助能力”，适合和 [按键功能](./key.md) 页面中的实际写入接口配合使用。
+- 做轴体选择器时，建议缓存 `getFineTuneAxisList()` 返回结果，避免每次切换页面都重复读取。
+- 做灯效选择器时，建议缓存 `getKeyboardBacklightEffectList()` 和 `getAmbientLightEffectList()` 返回结果，避免把静态枚举写死在页面里。
+- 这些接口都是“渲染辅助能力”，适合和 [按键功能](./key.md)、[轴体相关功能](./axis-calibration.md) 页面中的实际写入接口配合使用。

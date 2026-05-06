@@ -1,42 +1,80 @@
-# Key Layout & Shortcuts
+# Feature Data API
 
 ## Overview
 
-This category groups the newer client-side SDK capabilities around layout rendering, layer mapping, and shortcut catalogs. Unlike the per-key write APIs, these methods are mainly used to build keyboard editors, render key maps, and populate function pickers on the frontend.
+This category groups client-side SDK data capabilities around standard keyboard layout data, shortcut catalogs, and switch catalogs that can be cached and rendered directly by the client. Unlike the per-key write APIs, these methods are mainly used to build keyboard editors, render key maps, and populate function pickers on the frontend.
 
 Current APIs in this category:
 
-- `ServiceKeyboard.getKeyCustomLayer(layer)`
 - `ServiceKeyboard.getStandard104KeyLayout()`
 - `ServiceKeyboard.getShortcutFunctionList(type)`
+- `ServiceKeyboard.getFineTuneAxisList()`
+- `ServiceKeyboard.getKeyboardBacklightEffectList()`
+- `ServiceKeyboard.getAmbientLightEffectList()`
 
-## Get Key Custom Layer
+## Get Supported Keyboard Backlight Effect List (Client-side)
 
-ServiceKeyboard.getKeyCustomLayer(layer)
+ServiceKeyboard.getKeyboardBacklightEffectList()
 
-Brief: Returns the custom-function mapping for a specific layer. Supported layers are base, FN1, FN2, and FN3.
+Brief description: Return the built-in keyboard backlight main modes and sub-mode list supported by the current SDK. This is useful for rendering client-side selectors, lighting panels, or mode lookup tables.
 
 ### Parameters
 
-| Field | Type | Description | Required |
-|------|------|------|----------|
-| layer | number | Layer value. Base: `0x00`, FN1: `0x01`, FN2: `0x02`, FN3: `0x03` | Yes |
+This method does not require any parameters.
 
-### Returns
+### Return Details
 
-- Overall type: `Promise<{ code: number, layer: number, list: Array<{ hid: string, type: string, name: string, content: string, image: string, fn_code?: string }>, layout: any[] }>`
+Returned field meanings:
 
-- Notes:
+• `total`: total number of supported backlight main modes
+• `list`: supported backlight effect list
 
-- `list` is the flattened function dataset.
-- `layout` is ready for keyboard-map rendering.
-- `image` is the icon URL for the current custom function, or an empty string if unavailable.
+Each item in `list` contains:
+
+• `mode`: backlight main mode value
+• `label`: backlight main mode label
+• `childModes`: supported sub-mode list for the current main mode
+
+Each item in `childModes` contains:
+
+• `value`: sub-mode value, starting from `1`
+• `label`: sub-mode label
 
 ### Example
 
 ```javascript
-const baseLayer = await ServiceKeyboard.getKeyCustomLayer(0x00);
-console.log('Base layer mapping:', baseLayer);
+const backlightEffects = await ServiceKeyboard.getKeyboardBacklightEffectList();
+console.log('Supported keyboard backlight effects:', backlightEffects);
+```
+
+## Get Supported Ambient Lighting Effect List (Client-side)
+
+ServiceKeyboard.getAmbientLightEffectList()
+
+Brief description: Return the built-in ambient-light / logo-light main mode list supported by the current SDK. This is useful for directly rendering a mode selector on the client side.
+
+### Parameters
+
+This method does not require any parameters.
+
+### Return Details
+
+Returned field meanings:
+
+• `total`: total number of supported ambient-light main modes
+• `list`: supported ambient-light effect list
+
+Each item in `list` contains:
+
+• `mode`: ambient-light main mode value
+• `label`: ambient-light main mode label
+• `alias`: protocol alias, such as `L0` through `L9`
+
+### Example
+
+```javascript
+const ambientEffects = await ServiceKeyboard.getAmbientLightEffectList();
+console.log('Supported ambient lighting effects:', ambientEffects);
 ```
 
 ## Get Standard 104-Key Layout
@@ -86,10 +124,40 @@ const mediaShortcuts = await ServiceKeyboard.getShortcutFunctionList('media');
 console.log('Media shortcuts:', mediaShortcuts.list);
 ```
 
+## Get Fine-Tunable Switch List
+
+ServiceKeyboard.getFineTuneAxisList()
+
+Brief: Returns the switch catalog currently supported for fine tuning. This is a driver-client data helper and is suitable for switch pickers, switch information panels, and cached frontend datasets.
+
+### Parameters
+
+This method does not require parameters.
+
+### Returns
+
+- Overall type: `Promise<{ code: number, total: number, list: Array<{ axis: number, brand: string, name: string, model: string, axisRangeMax: number, axisCoefficient: number, images: { icon: string, z_b: string, z_y: string } }> }>`
+
+- Notes:
+
+- `axis` is the switch index and can be used as the `axis` field for `setKeyCustomAxis(params)`.
+- `brand`, `name`, and `model` are suitable for client-side switch display.
+- `axisRangeMax` and `axisCoefficient` are default switch parameters and can be used as reference values for custom switch configuration.
+- `images` contains switch icon and structure image URLs.
+
+### Example
+
+```javascript
+const fineTuneAxisList = await ServiceKeyboard.getFineTuneAxisList();
+console.log('Fine-tunable switches:', fineTuneAxisList.list);
+```
+
 ## Recommendations
 
 TIP
 
-- Use `getStandard104KeyLayout()` or the real device layout as the rendering base, then merge `getKeyCustomLayer()` data into your editor UI.
+- Use `getStandard104KeyLayout()` as the base standard-keyboard layout data for editor UI rendering.
 - Cache `getShortcutFunctionList()` by type when building selection panels to avoid repeated client-side reconstruction.
-- For actual key writes, use this page together with [Key Functions](./key.md).
+- Cache `getFineTuneAxisList()` when building switch pickers.
+- Cache `getKeyboardBacklightEffectList()` and `getAmbientLightEffectList()` when building lighting selectors instead of hardcoding static enums in the page.
+- For actual writes, use this page together with [Key Functions](./key.md) and [Switch Related Functions](./axis-calibration.md).

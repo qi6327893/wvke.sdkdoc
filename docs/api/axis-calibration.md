@@ -2,12 +2,11 @@
 
 ## 概述
 
-这组接口对应调试页中的“轴体相关功能”分类，重点是“识别当前键盘每个键用了什么轴体”“哪些轴体支持精调”“为某个按键切换目标轴体”。
+这组接口对应调试页中的“轴体相关功能”分类，重点是“识别当前键盘每个键用了什么轴体”“为某个按键切换目标轴体”。
 
 本分类当前包含以下接口：
 
 - `ServiceKeyboard.getAxisDetails()`
-- `ServiceKeyboard.getFineTuneAxisList()`
 - `ServiceKeyboard.setKeyCustomAxis(params)`
 
 ## 获取整个键盘轴体设置详情
@@ -32,23 +31,6 @@ ServiceKeyboard.getAxisDetails()
 ```javascript
 const axisDetails = await ServiceKeyboard.getAxisDetails();
 console.log('键盘轴体设置详情:', axisDetails.details);
-```
-
-## 获取支持精调的轴体列表
-
-ServiceKeyboard.getFineTuneAxisList()
-
-简要描述：返回当前 SDK 内支持精调的轴体清单。
-
-### 返回值
-
-• 总体类型：`Promise<{ code: number, total: number, list: Array<{ axis: number, brand: string, name: string, model: string, axisRangeMax: number, axisCoefficient: number, images: { icon: string, z_b: string, z_y: string } }> }>`
-
-### 使用示例
-
-```javascript
-const fineTuneAxisList = await ServiceKeyboard.getFineTuneAxisList();
-console.log('支持精调的轴体:', fineTuneAxisList.list);
 ```
 
 ## 设置按键自定义轴体
@@ -82,5 +64,5 @@ await ServiceKeyboard.setKeyCustomAxis({
 TIP
 
 - 做轴体识别页面时，优先读取 `getAxisDetails()`，它同时给出 `details` 和 `layout` 两种结构。
-- 做轴体选择器时，建议缓存 `getFineTuneAxisList()` 返回结果，避免每次切换页面都重复读取。
+- 做轴体选择器时，请先到 [客户端数据接口](./key-layout.md) 读取 `getFineTuneAxisList()` 支持精调的轴体清单。
 - 做实时调试、校准和行程配置时，请转到 [轴体行程功能](./performance.md) 页面查看 `getADCSample()`、`calibrationStart()`、`calibrationStop()`、`getCalibrationStatus()`、`getPerformance()` 与 `setPerformance()`。

@@ -50,52 +50,6 @@ const result = await ServiceKeyboard.getKeyCustomLayer(0x00);
 console.log('基础层自定义功能:', result);
 ```
 
-## 获取标准104键盘布局接口（客户端功能）
-
-ServiceKeyboard.getStandard104KeyLayout()
-
-简要描述：获取标准 104 键盘布局数据。该接口为客户端封装功能，不依赖设备实时返回。
-
-### 参数
-
-此方法不需要参数。
-
-### 返回值
-
-• 总体类型：`Promise<{ total: number, rows: Array<Array<{ row: number, col: number, hid: string, name: string, value: string, vkCode?: number, scanCode?: number }>>, list: Array<{ row: number, col: number, hid: string, name: string, value: string, vkCode?: number, scanCode?: number }> }>`
-• 描述：返回标准 104 键的行列布局和扁平列表，可直接用于客户端键位选择器或布局渲染。
-
-### 使用示例
-
-```javascript
-const layout104 = await ServiceKeyboard.getStandard104KeyLayout();
-console.log('标准104键盘布局:', layout104);
-```
-
-## 获取快捷键功能列表接口（客户端功能）
-
-ServiceKeyboard.getShortcutFunctionList(type)
-
-简要描述：按类型获取快捷键功能列表。该接口为客户端封装功能。
-
-### 参数
-
-| 字段 | 类型 | 描述 | 是否必需 |
-|------|------|------|----------|
-| type | string | 快捷键类型，只支持 `system`、`mouse`、`media`、`firmware`、`hotkey` | 是 |
-
-### 返回值
-
-• 总体类型：`Promise<{ type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: number, commandType: number, image: string }> }>`
-• 描述：返回指定类型的快捷键功能列表，其中 `code` 为原始协议值，`task` 为热键组合（仅 `hotkey` 类型有值，例如 `Ctrl+C`），`id` 与 `commandType` 为拆解后的数值字段，`image` 为对应图标资源地址；若当前项没有可用图标，则返回空字符串。
-
-### 使用示例
-
-```javascript
-const shortcuts = await ServiceKeyboard.getShortcutFunctionList('system');
-console.log('system 快捷键功能列表:', shortcuts);
-```
-
 ## 获取自定义快捷键 CODE
 
 ServiceKeyboard.getHotKeyCodeCustom(hotKey)

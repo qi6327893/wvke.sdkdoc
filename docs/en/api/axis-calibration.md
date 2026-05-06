@@ -2,12 +2,11 @@
 
 ## Overview
 
-This page matches the Switch Related Functions category from the SDK debug page. These methods focus on identifying the current switch used by each key, listing fine-tunable switch models, and assigning a target switch to a specific key.
+This page matches the Switch Related Functions category from the SDK debug page. These methods focus on identifying the current switch used by each key and assigning a target switch to a specific key.
 
 Current APIs in this category:
 
 - `ServiceKeyboard.getAxisDetails()`
-- `ServiceKeyboard.getFineTuneAxisList()`
 - `ServiceKeyboard.setKeyCustomAxis(params)`
 
 ## Get Keyboard Switch Details
@@ -32,23 +31,6 @@ Brief: Returns the current switch metadata used by every key on the keyboard.
 ```javascript
 const axisDetails = await ServiceKeyboard.getAxisDetails();
 console.log('Keyboard switch details:', axisDetails.details);
-```
-
-## Get Fine-Tunable Switch List
-
-ServiceKeyboard.getFineTuneAxisList()
-
-Brief: Returns the switch catalog currently supported for fine tuning.
-
-### Returns
-
-- Overall type: `Promise<{ code: number, total: number, list: Array<{ axis: number, brand: string, name: string, model: string, axisRangeMax: number, axisCoefficient: number, images: { icon: string, z_b: string, z_y: string } }> }>`
-
-### Example
-
-```javascript
-const fineTuneAxisList = await ServiceKeyboard.getFineTuneAxisList();
-console.log('Fine-tunable switches:', fineTuneAxisList.list);
 ```
 
 ## Set Custom Switch For Key
@@ -82,5 +64,5 @@ await ServiceKeyboard.setKeyCustomAxis({
 TIP
 
 - Use `getAxisDetails()` first when building switch-recognition pages because it returns both `details` and `layout` structures.
-- Cache `getFineTuneAxisList()` when building switch pickers.
+- Use `getFineTuneAxisList()` from [Client Data API](./key-layout.md) before building switch pickers.
 - For live debugging, calibration, and travel configuration, use [Switch Travel Functions](./performance.md) for `getADCSample()`, `calibrationStart()`, `calibrationStop()`, `getCalibrationStatus()`, `getPerformance()`, and `setPerformance()`.

@@ -134,4 +134,4 @@ TIP
 - 只读一次状态时，直接等待 Promise 结果即可。
 - 需要持续渲染 UI 时，必须同时监听事件，并做 `5000ms` 心跳。
 - 页面销毁时必须调用 `off(...)`，否则容易留下重复监听。
-- 基础灯效模式、Logo 模式枚举和亮度速度档位，仍然以 [万花筒灯效](./lighting.md) 页面为准。
+- 基础灯效模式和 Logo 模式枚举，请以 [客户端数据接口](./key-layout.md) 页面中的 `getKeyboardBacklightEffectList()` 与 `getAmbientLightEffectList()` 为准；亮度和速度档位仍以 [万花筒灯效](./lighting.md) 页面为准。

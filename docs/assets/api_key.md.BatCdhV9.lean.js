@@ -1,1 +1,0 @@
-import{_ as i,o as s,c as t,ae as e}from"./chunks/framework.FQ5RHm_v.js";const c=JSON.parse('{"title":"按键功能","description":"","frontmatter":{},"headers":[],"relativePath":"api/key.md","filePath":"api/key.md"}'),h={name:"api/key.md"};function n(d,a,l,r,o,p){return s(),t("div",null,[...a[0]||(a[0]=[e("",57)])])}const g=i(h,[["render",n]]);export{c as __pageData,g as default};

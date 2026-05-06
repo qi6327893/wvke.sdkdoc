@@ -132,4 +132,4 @@ TIP
 - For one-time reads, waiting for the Promise result is enough.
 - For live UI rendering, always combine the read API with the matching event listener and a `5000ms` heartbeat.
 - Always remove listeners with `off(...)` when the page is destroyed.
-- Base effect enums, logo effect enums, brightness, and speed ranges remain documented under [Kaleidoscope Lighting](./lighting.md).
+- Base effect enums and logo effect enums are documented under [Client Data API](./key-layout.md) through `getKeyboardBacklightEffectList()` and `getAmbientLightEffectList()`. Brightness and speed ranges remain documented under [Kaleidoscope Lighting](./lighting.md).
