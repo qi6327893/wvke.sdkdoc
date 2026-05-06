@@ -1,0 +1,1 @@
+import{_ as e,o as l,c as i,ae as t}from"./chunks/framework.FQ5RHm_v.js";const _=JSON.parse('{"title":"云端接口","description":"","frontmatter":{},"headers":[],"relativePath":"api/cloud.md","filePath":"api/cloud.md"}'),r={name:"api/cloud.md"};function o(n,a,d,c,s,h){return l(),i("div",null,[...a[0]||(a[0]=[t("",9)])])}const p=e(r,[["render",o]]);export{_ as __pageData,p as default};
