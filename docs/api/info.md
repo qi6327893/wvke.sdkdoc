@@ -56,6 +56,8 @@ ServiceKeyboard.getRateOfReturn()
 
 简要描述: 获取当前键盘回报率。
 
+调试工具中，回报率枚举显示顺序为：`0=8000Hz`、`1=4000Hz`、`2=2000Hz`、`3=1000Hz`、`4=500Hz`、`5=250Hz`、`6=125Hz`。
+
 ### 参数
 
 此方法不需要参数。
@@ -82,6 +84,18 @@ ServiceKeyboard.getRateOfReturn()
 | 5 | 2000Hz |
 | 6 | 4000Hz |
 | 7 | 8000Hz |
+
+调试枚举映射关系：
+
+| 调试枚举值 | 回报率 |
+|------|------|
+| 0 | 8000Hz |
+| 1 | 4000Hz |
+| 2 | 2000Hz |
+| 3 | 1000Hz |
+| 4 | 500Hz |
+| 5 | 250Hz |
+| 6 | 125Hz |
 
 ### 使用示例
 
@@ -144,6 +158,7 @@ async function updateRateOfReturn(value) {
 TIP
 
 • 键盘固件协议中，回报率使用 `1` 到 `7` 表示不同档位。
+• 调试工具中的枚举展示为了贴合高到低档位，使用 `0` 到 `6` 反向表示相同回报率档位。
 • SDK 会自动把常见字符串输入转换为对应协议值。
 • 设置回报率后，建议再次调用 `ServiceKeyboard.getRateOfReturn()` 进行确认。
 
@@ -333,6 +348,282 @@ TIP
 • `time` 仅支持固定枚举值：`0`、`1`、`2`、`3`、`5`、`10`、`15`、`20`、`30`、`45`、`60`。
 • `0` 表示从不睡眠。
 • 设置成功后，返回结果中的 `key` 可直接用于界面展示。
+
+## 获取手柄模式开关
+
+ServiceKeyboard.getGamepadMode()
+
+简要描述: 获取当前手柄模式开关状态。
+
+### 参数
+
+此方法不需要参数。
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, key: string, value: number }>`
+• 描述: 返回一个 `Promise`，解析为当前手柄模式开关结果。
+
+| 字段 | 类型 | 描述 | 示例 |
+|------|------|------|------|
+| code | number | 接口调用状态码，`0` 表示成功。 | 0 |
+| key | string | 当前开关状态描述。 | "开启手柄模式" |
+| value | number | 当前协议值。`0`=关闭，`1`=开启。 | 1 |
+
+### 使用示例
+
+```javascript
+async function fetchGamepadMode() {
+  try {
+    const result = await ServiceKeyboard.getGamepadMode();
+    console.log('当前手柄模式:', result);
+  } catch (error) {
+    console.error('获取手柄模式失败:', error);
+  }
+}
+```
+
+## 设置手柄模式开关
+
+ServiceKeyboard.setGamepadMode(value)
+
+简要描述: 设置当前手柄模式开关状态。
+
+### 参数
+
+| 字段 | 类型 | 描述 | 是否必需 |
+|------|------|------|----------|
+| value | string \| number \| boolean | 手柄模式开关值。支持 `0/1`、`true/false`、`enable/disable` 等形式。 | 是 |
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, key: string, value: number }>`
+• 描述: 返回一个 `Promise`，设置成功时解析为当前生效的手柄模式状态。
+
+### 使用示例
+
+```javascript
+async function updateGamepadMode(value) {
+  try {
+    const result = await ServiceKeyboard.setGamepadMode(value);
+    console.log('设置手柄模式结果:', result);
+  } catch (error) {
+    console.error('设置手柄模式失败:', error);
+  }
+}
+
+// updateGamepadMode(1);
+```
+
+## 获取手柄映射设置
+
+ServiceKeyboard.getGamepadMappingSettings()
+
+简要描述: 获取当前手柄映射设置。
+
+### 参数
+
+此方法不需要参数。
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, enableMappedKeyboardKeys: number, disableMappedKeyInput: number }>`
+• 描述: 返回一个 `Promise`，解析为当前手柄映射设置。
+
+| 字段 | 类型 | 描述 | 示例 |
+|------|------|------|------|
+| code | number | 接口调用状态码，`0` 表示成功。 | 0 |
+| enableMappedKeyboardKeys | number | 是否启用映射键盘按键。`0` 表示关闭，`1` 表示启用。 | 1 |
+| disableMappedKeyInput | number | 是否禁用映射按键的原始键盘输入。`0` 表示不禁用，`1` 表示禁用。 | 0 |
+
+### 使用示例
+
+```javascript
+async function fetchGamepadMappingSettings() {
+  try {
+    const result = await ServiceKeyboard.getGamepadMappingSettings();
+    console.log('当前手柄映射设置:', result);
+  } catch (error) {
+    console.error('获取手柄映射设置失败:', error);
+  }
+}
+```
+
+## 设置手柄映射设置
+
+ServiceKeyboard.setGamepadMappingSettings(settings)
+
+简要描述: 设置当前手柄映射设置。
+
+### 参数
+
+| 字段 | 类型 | 描述 | 是否必需 |
+|------|------|------|----------|
+| settings.enableMappedKeyboardKeys | string \| number \| boolean | 是否启用映射键盘按键。 | 是 |
+| settings.disableMappedKeyInput | string \| number \| boolean | 是否禁用映射按键的原始键盘输入。 | 是 |
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, enableMappedKeyboardKeys: number, disableMappedKeyInput: number }>`
+
+### 使用示例
+
+```javascript
+async function updateGamepadMappingSettings() {
+  try {
+    const result = await ServiceKeyboard.setGamepadMappingSettings({
+      enableMappedKeyboardKeys: 1,
+      disableMappedKeyInput: 0,
+    });
+    console.log('设置手柄映射结果:', result);
+  } catch (error) {
+    console.error('设置手柄映射失败:', error);
+  }
+}
+```
+
+## 获取手柄曲线选项
+
+ServiceKeyboard.getGamepadCurveOptions()
+
+简要描述: 获取当前手柄曲线选项。
+
+### 参数
+
+此方法不需要参数。
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, enableAngleAdjustment: number, enableSquareStickOutput: number, enableExtremePriority: number }>`
+• 描述: 返回一个 `Promise`，解析为当前手柄曲线选项。
+
+| 字段 | 类型 | 描述 | 示例 |
+|------|------|------|------|
+| code | number | 接口调用状态码，`0` 表示成功。 | 0 |
+| enableAngleAdjustment | number | 是否启用角度调整。`0` 表示关闭，`1` 表示启用。 | 0 |
+| enableSquareStickOutput | number | 是否启用方档摇杆输出。`0` 表示关闭，`1` 表示启用。 | 1 |
+| enableExtremePriority | number | 是否启用极值优先。`0` 表示关闭，`1` 表示启用。 | 0 |
+
+### 使用示例
+
+```javascript
+async function fetchGamepadCurveOptions() {
+  try {
+    const result = await ServiceKeyboard.getGamepadCurveOptions();
+    console.log('当前手柄曲线选项:', result);
+  } catch (error) {
+    console.error('获取手柄曲线选项失败:', error);
+  }
+}
+```
+
+## 设置手柄曲线选项
+
+ServiceKeyboard.setGamepadCurveOptions(settings)
+
+简要描述: 设置当前手柄曲线选项。
+
+### 参数
+
+| 字段 | 类型 | 描述 | 是否必需 |
+|------|------|------|----------|
+| settings.enableAngleAdjustment | string \| number \| boolean | 是否启用角度调整。 | 是 |
+| settings.enableSquareStickOutput | string \| number \| boolean | 是否启用方档摇杆输出。 | 是 |
+| settings.enableExtremePriority | string \| number \| boolean | 是否启用极值优先。 | 是 |
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, enableAngleAdjustment: number, enableSquareStickOutput: number, enableExtremePriority: number }>`
+
+### 使用示例
+
+```javascript
+async function updateGamepadCurveOptions() {
+  try {
+    const result = await ServiceKeyboard.setGamepadCurveOptions({
+      enableAngleAdjustment: 0,
+      enableSquareStickOutput: 1,
+      enableExtremePriority: 0,
+    });
+    console.log('设置手柄曲线选项结果:', result);
+  } catch (error) {
+    console.error('设置手柄曲线选项失败:', error);
+  }
+}
+```
+
+## 获取手柄线性曲线
+
+ServiceKeyboard.getGamepadLinearCurve()
+
+简要描述: 获取当前手柄线性曲线，返回 A、B、C、D 四个曲线点的毫米值。
+
+### 参数
+
+此方法不需要参数。
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+• 描述: 返回一个 `Promise`，解析为当前手柄线性曲线数据。
+
+| 字段 | 类型 | 描述 | 示例 |
+|------|------|------|------|
+| code | number | 接口调用状态码，`0` 表示成功。 | 0 |
+| pointA | number | A 点，单位 mm。 | 0.1 |
+| pointB | number | B 点，单位 mm。 | 0.2 |
+| pointC | number | C 点，单位 mm。 | 3.0 |
+| pointD | number | D 点，单位 mm。 | 3.3 |
+
+### 使用示例
+
+```javascript
+async function fetchGamepadLinearCurve() {
+  try {
+    const result = await ServiceKeyboard.getGamepadLinearCurve();
+    console.log('当前手柄线性曲线:', result);
+  } catch (error) {
+    console.error('获取手柄线性曲线失败:', error);
+  }
+}
+```
+
+## 设置手柄线性曲线
+
+ServiceKeyboard.setGamepadLinearCurve(curve)
+
+简要描述: 设置当前手柄线性曲线，传入 A、B、C、D 四个曲线点的毫米值。
+
+### 参数
+
+| 字段 | 类型 | 描述 | 是否必需 |
+|------|------|------|----------|
+| curve.pointA | string \| number | A 点，单位 mm。 | 是 |
+| curve.pointB | string \| number | B 点，单位 mm。 | 是 |
+| curve.pointC | string \| number | C 点，单位 mm。 | 是 |
+| curve.pointD | string \| number | D 点，单位 mm。 | 是 |
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+
+### 使用示例
+
+```javascript
+async function updateGamepadLinearCurve() {
+  try {
+    const result = await ServiceKeyboard.setGamepadLinearCurve({
+      pointA: 0.1,
+      pointB: 0.2,
+      pointC: 3.0,
+      pointD: 3.3,
+    });
+    console.log('设置手柄线性曲线结果:', result);
+  } catch (error) {
+    console.error('设置手柄线性曲线失败:', error);
+  }
+}
+```
 
 ## 恢复出厂设置
 

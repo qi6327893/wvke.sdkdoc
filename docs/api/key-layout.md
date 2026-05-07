@@ -114,17 +114,18 @@ ServiceKeyboard.getShortcutFunctionList(type)
 
 | 字段 | 类型 | 描述 | 是否必需 |
 |------|------|------|----------|
-| type | string | 功能分类，只支持 `system`、`mouse`、`media`、`firmware`、`hotkey` | 是 |
+| type | string | 功能分类，只支持 `system`、`mouse`、`media`、`firmware`、`hotkey`、`gamepad` | 是 |
 
 ### 返回值
 
-• 总体类型：`Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: number, commandType: number, image: string }> }>`
+• 总体类型：`Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: string, commandType: string, image: string }> }>`
 
 • 描述：
 
 - `code` 是原始协议值。
+- `gamepad` 项的 `code` 仍沿用 `id,type` 双字节字符串格式。例如图中的 `0xE000` 会拆成 `0x00,0xE0`，其中低字节为功能值，高字节为手柄类型值。
 - `task` 是热键组合，仅 `hotkey` 类型有值。
-- `id` 与 `commandType` 是便于前端直接处理的拆解字段。
+- `id` 与 `commandType` 是拆解后的十六进制字符串，格式保持为 `0x00` 这种形式，可直接传给 `setKeyConfig()`。
 - `image` 为功能图标资源地址；无图标时为空字符串。
 
 ### 使用示例
@@ -167,7 +168,7 @@ console.log('支持精调的轴体:', fineTuneAxisList.list);
 TIP
 
 - 做键位编辑器初始化时，可先读取 `getStandard104KeyLayout()` 作为标准键盘布局基础。
-- 做快捷功能选择器时，建议按 `system`、`mouse`、`media`、`firmware` 分组缓存 `getShortcutFunctionList()` 结果，避免重复请求。
+- 做快捷功能选择器时，建议按 `system`、`mouse`、`media`、`firmware`、`hotkey`、`gamepad` 分组缓存 `getShortcutFunctionList()` 结果，避免重复请求。
 - 做轴体选择器时，建议缓存 `getFineTuneAxisList()` 返回结果，避免每次切换页面都重复读取。
 - 做灯效选择器时，建议缓存 `getKeyboardBacklightEffectList()` 和 `getAmbientLightEffectList()` 返回结果，避免把静态枚举写死在页面里。
 - 这些接口都是“渲染辅助能力”，适合和 [按键功能](./key.md)、[轴体相关功能](./axis-calibration.md) 页面中的实际写入接口配合使用。

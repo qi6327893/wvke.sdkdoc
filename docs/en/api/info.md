@@ -60,6 +60,8 @@ async function fetchDeviceInfo() {
 
 This method does not require any parameters.
 
+In the debug tool, the polling-rate enum is displayed in descending order as `0=8000Hz`, `1=4000Hz`, `2=2000Hz`, `3=1000Hz`, `4=500Hz`, `5=250Hz`, `6=125Hz`.
+
 ### Return Value
 
 • Overall type: `Promise<{ code: number, key: string }>`
@@ -82,6 +84,18 @@ Protocol value mapping:
 | 5 | 2000Hz |
 | 6 | 4000Hz |
 | 7 | 8000Hz |
+
+Debug enum mapping:
+
+| Debug Enum Value | Polling Rate |
+|------|------|
+| 0 | 8000Hz |
+| 1 | 4000Hz |
+| 2 | 2000Hz |
+| 3 | 1000Hz |
+| 4 | 500Hz |
+| 5 | 250Hz |
+| 6 | 125Hz |
 
 ### Example
 
@@ -144,6 +158,7 @@ async function updateRateOfReturn(value) {
 TIP
 
 • In the keyboard firmware protocol, polling rates are represented by values `1` through `7`.
+• In the debug tool, the displayed enum uses `0` through `6` in reverse order for the same polling-rate levels.
 • The SDK automatically converts common string inputs to the corresponding protocol value.
 • After setting the polling rate, it is recommended to call `ServiceKeyboard.getRateOfReturn()` again to confirm the result.
 
@@ -333,6 +348,282 @@ TIP
 • `time` only supports fixed enumerated values: `0`, `1`, `2`, `3`, `5`, `10`, `15`, `20`, `30`, `45`, `60`
 • `0` means never sleep
 • The `key` field in the return value can be used directly in UI display
+
+## Get Gamepad Mode
+
+ServiceKeyboard.getGamepadMode()
+
+Brief description: Gets the current gamepad mode switch state.
+
+### Parameters
+
+This method does not require any parameters.
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, key: string, value: number }>`
+• Description: Returns a `Promise` that resolves to the current gamepad-mode state.
+
+| Field | Type | Description | Example |
+|------|------|------|------|
+| code | number | API status code. `0` means success. | 0 |
+| key | string | Current switch-state label. | "Gamepad mode enabled" |
+| value | number | Current protocol value. `0` = disabled, `1` = enabled. | 1 |
+
+### Example
+
+```javascript
+async function fetchGamepadMode() {
+	try {
+		const result = await ServiceKeyboard.getGamepadMode();
+		console.log('Current gamepad mode:', result);
+	} catch (error) {
+		console.error('Failed to get gamepad mode:', error);
+	}
+}
+```
+
+## Set Gamepad Mode
+
+ServiceKeyboard.setGamepadMode(value)
+
+Brief description: Sets the current gamepad mode switch state.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| value | string \| number \| boolean | Gamepad mode switch value. Supports forms such as `0/1`, `true/false`, and `enable/disable`. | Yes |
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, key: string, value: number }>`
+• Description: Returns a `Promise` that resolves to the applied gamepad-mode state.
+
+### Example
+
+```javascript
+async function updateGamepadMode(value) {
+	try {
+		const result = await ServiceKeyboard.setGamepadMode(value);
+		console.log('Set gamepad mode result:', result);
+	} catch (error) {
+		console.error('Failed to set gamepad mode:', error);
+	}
+}
+
+// updateGamepadMode(1);
+```
+
+## Get Gamepad Mapping Settings
+
+ServiceKeyboard.getGamepadMappingSettings()
+
+Brief description: Gets the current gamepad mapping settings.
+
+### Parameters
+
+This method does not require any parameters.
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, enableMappedKeyboardKeys: number, disableMappedKeyInput: number }>`
+• Description: Returns a `Promise` that resolves to the current gamepad mapping settings.
+
+| Field | Type | Description | Example |
+|------|------|------|------|
+| code | number | API status code. `0` means success. | 0 |
+| enableMappedKeyboardKeys | number | Whether mapped keyboard keys are enabled. `0` means disabled and `1` means enabled. | 1 |
+| disableMappedKeyInput | number | Whether original keyboard input is disabled for mapped keys. `0` means allowed and `1` means blocked. | 0 |
+
+### Example
+
+```javascript
+async function fetchGamepadMappingSettings() {
+	try {
+		const result = await ServiceKeyboard.getGamepadMappingSettings();
+		console.log('Current gamepad mapping settings:', result);
+	} catch (error) {
+		console.error('Failed to get gamepad mapping settings:', error);
+	}
+}
+```
+
+## Set Gamepad Mapping Settings
+
+ServiceKeyboard.setGamepadMappingSettings(settings)
+
+Brief description: Sets the current gamepad mapping settings.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| settings.enableMappedKeyboardKeys | string \| number \| boolean | Whether mapped keyboard keys are enabled. | Yes |
+| settings.disableMappedKeyInput | string \| number \| boolean | Whether original keyboard input is disabled for mapped keys. | Yes |
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, enableMappedKeyboardKeys: number, disableMappedKeyInput: number }>`
+
+### Example
+
+```javascript
+async function updateGamepadMappingSettings() {
+	try {
+		const result = await ServiceKeyboard.setGamepadMappingSettings({
+			enableMappedKeyboardKeys: 1,
+			disableMappedKeyInput: 0,
+		});
+		console.log('Set gamepad mapping result:', result);
+	} catch (error) {
+		console.error('Failed to set gamepad mapping settings:', error);
+	}
+}
+```
+
+## Get Gamepad Curve Options
+
+ServiceKeyboard.getGamepadCurveOptions()
+
+Brief description: Gets the current gamepad curve options.
+
+### Parameters
+
+This method does not require any parameters.
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, enableAngleAdjustment: number, enableSquareStickOutput: number, enableExtremePriority: number }>`
+• Description: Returns a `Promise` that resolves to the current gamepad curve options.
+
+| Field | Type | Description | Example |
+|------|------|------|------|
+| code | number | API status code. `0` means success. | 0 |
+| enableAngleAdjustment | number | Whether angle adjustment is enabled. `0` means disabled and `1` means enabled. | 0 |
+| enableSquareStickOutput | number | Whether square-stick output is enabled. `0` means disabled and `1` means enabled. | 1 |
+| enableExtremePriority | number | Whether extreme-priority mode is enabled. `0` means disabled and `1` means enabled. | 0 |
+
+### Example
+
+```javascript
+async function fetchGamepadCurveOptions() {
+	try {
+		const result = await ServiceKeyboard.getGamepadCurveOptions();
+		console.log('Current gamepad curve options:', result);
+	} catch (error) {
+		console.error('Failed to get gamepad curve options:', error);
+	}
+}
+```
+
+## Set Gamepad Curve Options
+
+ServiceKeyboard.setGamepadCurveOptions(settings)
+
+Brief description: Sets the current gamepad curve options.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| settings.enableAngleAdjustment | string \| number \| boolean | Whether angle adjustment is enabled. | Yes |
+| settings.enableSquareStickOutput | string \| number \| boolean | Whether square-stick output is enabled. | Yes |
+| settings.enableExtremePriority | string \| number \| boolean | Whether extreme-priority mode is enabled. | Yes |
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, enableAngleAdjustment: number, enableSquareStickOutput: number, enableExtremePriority: number }>`
+
+### Example
+
+```javascript
+async function updateGamepadCurveOptions() {
+	try {
+		const result = await ServiceKeyboard.setGamepadCurveOptions({
+			enableAngleAdjustment: 0,
+			enableSquareStickOutput: 1,
+			enableExtremePriority: 0,
+		});
+		console.log('Set gamepad curve options result:', result);
+	} catch (error) {
+		console.error('Failed to set gamepad curve options:', error);
+	}
+}
+```
+
+## Get Gamepad Linear Curve
+
+ServiceKeyboard.getGamepadLinearCurve()
+
+Brief description: Gets the current gamepad linear curve and returns A, B, C, and D point values in millimeters.
+
+### Parameters
+
+This method does not require any parameters.
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+• Description: Returns a `Promise` that resolves to the current gamepad linear-curve data.
+
+| Field | Type | Description | Example |
+|------|------|------|------|
+| code | number | API status code. `0` means success. | 0 |
+| pointA | number | Point A in mm. | 0.1 |
+| pointB | number | Point B in mm. | 0.2 |
+| pointC | number | Point C in mm. | 3.0 |
+| pointD | number | Point D in mm. | 3.3 |
+
+### Example
+
+```javascript
+async function fetchGamepadLinearCurve() {
+	try {
+		const result = await ServiceKeyboard.getGamepadLinearCurve();
+		console.log('Current gamepad linear curve:', result);
+	} catch (error) {
+		console.error('Failed to get gamepad linear curve:', error);
+	}
+}
+```
+
+## Set Gamepad Linear Curve
+
+ServiceKeyboard.setGamepadLinearCurve(curve)
+
+Brief description: Sets the current gamepad linear curve using A, B, C, and D point values in millimeters.
+
+### Parameters
+
+| Field | Type | Description | Required |
+|------|------|------|----------|
+| curve.pointA | string \| number | Point A in mm. | Yes |
+| curve.pointB | string \| number | Point B in mm. | Yes |
+| curve.pointC | string \| number | Point C in mm. | Yes |
+| curve.pointD | string \| number | Point D in mm. | Yes |
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+
+### Example
+
+```javascript
+async function updateGamepadLinearCurve() {
+	try {
+		const result = await ServiceKeyboard.setGamepadLinearCurve({
+			pointA: 0.1,
+			pointB: 0.2,
+			pointC: 3.0,
+			pointD: 3.3,
+		});
+		console.log('Set gamepad linear curve result:', result);
+	} catch (error) {
+		console.error('Failed to set gamepad linear curve:', error);
+	}
+}
+```
 
 ## Restore Factory Settings
 

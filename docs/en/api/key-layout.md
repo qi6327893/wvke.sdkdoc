@@ -104,17 +104,18 @@ Brief: Returns the shortcut catalog for a specific type. This method is also imp
 
 | Field | Type | Description | Required |
 |------|------|------|----------|
-| type | string | Only `system`, `mouse`, `media`, `firmware`, and `hotkey` are supported | Yes |
+| type | string | Only `system`, `mouse`, `media`, `firmware`, `hotkey`, and `gamepad` are supported | Yes |
 
 ### Returns
 
-- Overall type: `Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: number, commandType: number, image: string }> }>`
+- Overall type: `Promise<{ code: number, type: string, total: number, list: Array<{ index: number, type: string, name: string, code: string, task: string, id: string, commandType: string, image: string }> }>`
 
 - Notes:
 
 - `code` is the original protocol value.
+- For `gamepad` items, `code` still uses the existing `id,type` string format. For example, `0xE000` from the protocol sheet is split into `0x00,0xE0`, where the low byte is the function value and the high byte is the controller type value.
 - `task` is the hotkey combination and is populated for `hotkey` items.
-- `id` and `commandType` are parsed numeric fields for frontend usage.
+- `id` and `commandType` are parsed hexadecimal strings in the `0x00` form and can be passed directly to `setKeyConfig()`.
 - `image` is the icon URL, or an empty string when no icon exists.
 
 ### Example
@@ -157,7 +158,7 @@ console.log('Fine-tunable switches:', fineTuneAxisList.list);
 TIP
 
 - Use `getStandard104KeyLayout()` as the base standard-keyboard layout data for editor UI rendering.
-- Cache `getShortcutFunctionList()` by type when building selection panels to avoid repeated client-side reconstruction.
+- Cache `getShortcutFunctionList()` by type when building selection panels to avoid repeated client-side reconstruction, including `gamepad` catalogs when controller mapping is enabled.
 - Cache `getFineTuneAxisList()` when building switch pickers.
 - Cache `getKeyboardBacklightEffectList()` and `getAmbientLightEffectList()` when building lighting selectors instead of hardcoding static enums in the page.
 - For actual writes, use this page together with [Key Functions](./key.md) and [Switch Related Functions](./axis-calibration.md).
