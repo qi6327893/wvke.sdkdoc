@@ -168,13 +168,18 @@ ServiceKeyboard.startGlobalReportListener(options)
 
 Brief description: Listens for keyboard active reports for profile switching, keyboard backlight base changes, and logo lighting base changes.
 
-The return value of `startGlobalReportListener()` only indicates whether the listener is enabled. Real-time report data is delivered through `on('keyboardGlobalReport', callback)` or the specific event callbacks below.
+`startGlobalReportListener()` sends firmware protocol `0xBD` to enable active reporting and keeps the session alive with a 60-second heartbeat. Real-time report data is delivered through `on('keyboardGlobalReport', callback)` or the specific event callbacks below.
 
 ### Parameters
 
 | Parameter | Type | Description | Required |
 |------|------|------|------|
 | options | object | Optional settings. Set `includeCommandResponses` to `true` to also emit responses produced by SDK commands. Defaults to `false`. | No |
+
+### Return Value
+
+• Overall type: `Promise<{ code: number, enabled: boolean, events: string[], includeCommandResponses: boolean, heartbeatIntervalMs: number }>`
+• Description: Returns a `Promise` that resolves to the current active-listener state. `heartbeatIntervalMs` is fixed at `60000`.
 
 ### Events
 
@@ -184,6 +189,7 @@ The return value of `startGlobalReportListener()` only indicates whether the lis
 | keyboardConfigChange | Profile slot change report, including `configIndex`, `configName`, and `value`. |
 | keyboardLightingChange | Keyboard backlight base report, including `mode`, `childMode`, `luminance`, `speed`, and `sleep`. |
 | keyboardLogoLightingChange | Logo lighting base report, including `mode`, `luminance`, `speed`, and `sleep`. |
+| keyboardBatteryChange | Battery level and charging-state report, including `battery` and `isCharging`. |
 
 ### Example
 
@@ -202,12 +208,25 @@ ServiceKeyboard.on('keyboardLightingChange', (report) => {
 	console.log('Lighting mode/brightness/speed:', report.mode, report.luminance, report.speed);
 });
 
-ServiceKeyboard.startGlobalReportListener();
+ServiceKeyboard.on('keyboardBatteryChange', (report) => {
+	console.log('Battery and charging state:', report.battery, report.isCharging);
+});
+
+await ServiceKeyboard.startGlobalReportListener();
 
 // Stop listening and remove the business callback when real-time data is no longer needed.
-ServiceKeyboard.stopGlobalReportListener();
+await ServiceKeyboard.stopGlobalReportListener();
 ServiceKeyboard.off('keyboardGlobalReport', handleGlobalReport);
 ```
+
+### Protocol Notes
+
+TIP
+
+• The firmware function code is `0xBD`.
+• Starting the listener sends `0xBD = 1`.
+• After startup, the SDK resends `0xBD = 1` every 60 seconds as a heartbeat so the firmware active-report session does not expire.
+• Stopping the listener sends `0xBD = 0` and clears the local heartbeat timer.
 
 ### Report Examples
 
@@ -238,16 +257,32 @@ Keyboard backlight base report:
 }
 ```
 
+Battery status report:
+
+```json
+{
+	"code": 0,
+	"type": "battery",
+	"battery": 87,
+	"isCharging": 1
+}
+```
+
 ## Stop Global Active Report Listener
 
 ServiceKeyboard.stopGlobalReportListener()
 
 Brief description: Stops the keyboard active report listener started by `startGlobalReportListener()`.
 
+### Return Value
+
+• Overall type: `Promise<{ code: number, enabled: boolean }>`
+• Description: Returns a `Promise` that resolves to the stopped listener state.
+
 ### Example
 
 ```javascript
-ServiceKeyboard.stopGlobalReportListener();
+await ServiceKeyboard.stopGlobalReportListener();
 ```
 
 ## Get Sleep Timeout
@@ -353,7 +388,7 @@ TIP
 
 ServiceKeyboard.getGamepadMode()
 
-Brief description: Gets the current gamepad mode switch state.
+Brief description: Gets the current gamepad mode.
 
 ### Parameters
 
@@ -367,8 +402,8 @@ This method does not require any parameters.
 | Field | Type | Description | Example |
 |------|------|------|------|
 | code | number | API status code. `0` means success. | 0 |
-| key | string | Current switch-state label. | "Gamepad mode enabled" |
-| value | number | Current protocol value. `0` = disabled, `1` = enabled. | 1 |
+| key | string | Current gamepad-mode label. | "Xbox gamepad mode" |
+| value | number | Current protocol value. `0` = keyboard-only mode, `1` = Xbox gamepad mode, `2` = classic gamepad mode. | 1 |
 
 ### Example
 
@@ -387,18 +422,26 @@ async function fetchGamepadMode() {
 
 ServiceKeyboard.setGamepadMode(value)
 
-Brief description: Sets the current gamepad mode switch state.
+Brief description: Sets the current gamepad mode.
 
 ### Parameters
 
 | Field | Type | Description | Required |
 |------|------|------|----------|
-| value | string \| number \| boolean | Gamepad mode switch value. Supports forms such as `0/1`, `true/false`, and `enable/disable`. | Yes |
+| value | string \| number | Gamepad mode value. Supports `0/1/2`, and labels such as `keyboard-only mode`, `Xbox gamepad mode`, and `classic gamepad mode`. | Yes |
 
 ### Return Value
 
 • Overall type: `Promise<{ code: number, key: string, value: number }>`
 • Description: Returns a `Promise` that resolves to the applied gamepad-mode state.
+
+### Mode Enum
+
+| Protocol Value | Meaning |
+|------|------|
+| 0 | Keyboard-only mode |
+| 1 | Xbox gamepad mode |
+| 2 | Classic gamepad mode |
 
 ### Example
 
@@ -412,7 +455,9 @@ async function updateGamepadMode(value) {
 	}
 }
 
+// updateGamepadMode(0);
 // updateGamepadMode(1);
+// updateGamepadMode(2);
 ```
 
 ## Get Gamepad Mapping Settings

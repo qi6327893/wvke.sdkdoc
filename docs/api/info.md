@@ -168,13 +168,18 @@ ServiceKeyboard.startGlobalReportListener(options)
 
 简要描述: 监听键盘主动上报的配置切换、键盘背光基础参数变化和 Logo 灯基础参数变化。
 
-`startGlobalReportListener()` 的返回值只表示监听是否已开启；实时上报数据通过 `on('keyboardGlobalReport', callback)` 或下方具体事件回调获取。
+`startGlobalReportListener()` 会向固件发送 `0xBD` 启动命令，并在启动后每隔 1 分钟发送一次心跳；实时上报数据通过 `on('keyboardGlobalReport', callback)` 或下方具体事件回调获取。
 
 ### 参数
 
 | 参数 | 类型 | 描述 | 是否必需 |
 |------|------|------|------|
 | options | object | 可选配置。`includeCommandResponses` 为 `true` 时也会派发 SDK 主动发命令产生的响应；默认 `false`。 | 否 |
+
+### 返回值
+
+• 总体类型: `Promise<{ code: number, enabled: boolean, events: string[], includeCommandResponses: boolean, heartbeatIntervalMs: number }>`
+• 描述: 返回一个 `Promise`，解析为当前全局主动上报监听状态，其中 `heartbeatIntervalMs` 固定为 `60000`。
 
 ### 事件
 
@@ -184,6 +189,7 @@ ServiceKeyboard.startGlobalReportListener(options)
 | keyboardConfigChange | 配置槽位切换上报，包含 `configIndex`、`configName`、`value`。 |
 | keyboardLightingChange | 键盘背光基础参数上报，包含 `mode`、`childMode`、`luminance`、`speed`、`sleep`。 |
 | keyboardLogoLightingChange | Logo 灯基础参数上报，包含 `mode`、`luminance`、`speed`、`sleep`。 |
+| keyboardBatteryChange | 电池电量与充电状态上报，包含 `battery`、`isCharging`。 |
 
 ### 使用示例
 
@@ -202,12 +208,25 @@ ServiceKeyboard.on('keyboardLightingChange', (report) => {
   console.log('灯光模式/亮度/速度:', report.mode, report.luminance, report.speed);
 });
 
-ServiceKeyboard.startGlobalReportListener();
+ServiceKeyboard.on('keyboardBatteryChange', (report) => {
+  console.log('电池与充电状态:', report.battery, report.isCharging);
+});
+
+await ServiceKeyboard.startGlobalReportListener();
 
 // 不再需要实时数据时关闭监听，并移除业务侧回调。
-ServiceKeyboard.stopGlobalReportListener();
+await ServiceKeyboard.stopGlobalReportListener();
 ServiceKeyboard.off('keyboardGlobalReport', handleGlobalReport);
 ```
+
+### 协议说明
+
+TIP
+
+• 固件功能码为 `0xBD`。
+• 启动监听时发送 `0xBD = 1`。
+• 启动后 SDK 会每隔 60 秒重复发送一次 `0xBD = 1` 作为心跳，避免固件主动上报会话超时。
+• 关闭监听时发送 `0xBD = 0`，并清理本地心跳定时器。
 
 ### 上报示例
 
@@ -238,16 +257,32 @@ ServiceKeyboard.off('keyboardGlobalReport', handleGlobalReport);
 }
 ```
 
+电池状态上报：
+
+```json
+{
+  "code": 0,
+  "type": "battery",
+  "battery": 87,
+  "isCharging": 1
+}
+```
+
 ## 关闭主动上报全局监听
 
 ServiceKeyboard.stopGlobalReportListener()
 
 简要描述: 关闭通过 `startGlobalReportListener()` 开启的键盘主动上报全局监听。
 
+### 返回值
+
+• 总体类型: `Promise<{ code: number, enabled: boolean }>`
+• 描述: 返回一个 `Promise`，解析为关闭后的监听状态。
+
 ### 使用示例
 
 ```javascript
-ServiceKeyboard.stopGlobalReportListener();
+await ServiceKeyboard.stopGlobalReportListener();
 ```
 
 ## 获取休眠时间
@@ -349,11 +384,11 @@ TIP
 • `0` 表示从不睡眠。
 • 设置成功后，返回结果中的 `key` 可直接用于界面展示。
 
-## 获取手柄模式开关
+## 获取手柄模式
 
 ServiceKeyboard.getGamepadMode()
 
-简要描述: 获取当前手柄模式开关状态。
+简要描述: 获取当前手柄模式。
 
 ### 参数
 
@@ -362,13 +397,13 @@ ServiceKeyboard.getGamepadMode()
 ### 返回值
 
 • 总体类型: `Promise<{ code: number, key: string, value: number }>`
-• 描述: 返回一个 `Promise`，解析为当前手柄模式开关结果。
+• 描述: 返回一个 `Promise`，解析为当前手柄模式结果。
 
 | 字段 | 类型 | 描述 | 示例 |
 |------|------|------|------|
 | code | number | 接口调用状态码，`0` 表示成功。 | 0 |
-| key | string | 当前开关状态描述。 | "开启手柄模式" |
-| value | number | 当前协议值。`0`=关闭，`1`=开启。 | 1 |
+| key | string | 当前手柄模式描述。 | "Xbox手柄模式" |
+| value | number | 当前协议值。`0`=纯键盘模式，`1`=Xbox手柄模式，`2`=经典手柄模式。 | 1 |
 
 ### 使用示例
 
@@ -383,22 +418,30 @@ async function fetchGamepadMode() {
 }
 ```
 
-## 设置手柄模式开关
+## 设置手柄模式
 
 ServiceKeyboard.setGamepadMode(value)
 
-简要描述: 设置当前手柄模式开关状态。
+简要描述: 设置当前手柄模式。
 
 ### 参数
 
 | 字段 | 类型 | 描述 | 是否必需 |
 |------|------|------|----------|
-| value | string \| number \| boolean | 手柄模式开关值。支持 `0/1`、`true/false`、`enable/disable` 等形式。 | 是 |
+| value | string \| number | 手柄模式值。支持 `0/1/2`，也支持 `纯键盘模式`、`Xbox手柄模式`、`经典手柄模式` 等写法。 | 是 |
 
 ### 返回值
 
 • 总体类型: `Promise<{ code: number, key: string, value: number }>`
 • 描述: 返回一个 `Promise`，设置成功时解析为当前生效的手柄模式状态。
+
+### 模式枚举
+
+| 协议值 | 含义 |
+|------|------|
+| 0 | 纯键盘模式 |
+| 1 | Xbox手柄模式 |
+| 2 | 经典手柄模式 |
 
 ### 使用示例
 
@@ -412,7 +455,9 @@ async function updateGamepadMode(value) {
   }
 }
 
+// updateGamepadMode(0);
 // updateGamepadMode(1);
+// updateGamepadMode(2);
 ```
 
 ## 获取手柄映射设置

@@ -8,7 +8,7 @@
 
 ServiceKeyboard.calibrationStart()
 
-简要描述：开始设备校准流程。
+简要描述：开始设备校准流程。SDK 只发送开始校准命令，不会再自动启动旧的多层实时监听；如果需要实时查看校准进度，请调用 `getCalibrationStatus()` 轮询读取。
 
 ### 参数
 
@@ -18,6 +18,12 @@ ServiceKeyboard.calibrationStart()
 
 • 总体类型：`Promise<{ status: number, message: string }>`
 • 描述：返回校准开始状态。
+
+### 调试工具表现
+
+• 在调试工具中选择 `calibrationStart` 并点击 `调用` 后，页面会先启动校准流程，再自动开始监听实时校准状态。
+• 实时状态通过定时轮询 `getCalibrationStatus()` 获取，只读取按键状态层，不读取 ADC 和行程层。
+• 点击 `停止监听` 或切换离开该接口后，调试工具会停止轮询并取消未完成的实时矩阵请求。
 
 ### 使用示例
 
@@ -52,7 +58,7 @@ console.log('结束校准:', calibration);
 
 ServiceKeyboard.getCalibrationStatus()
 
-简要描述：获取整个键盘的实时校准状态。该接口暂未开放。
+简要描述：获取整个键盘的实时校准状态。该接口只读取按键状态层，不读取 ADC 原始值和实时行程数据；返回的键盘图布局与 `getADCSample()` 保持一致，可直接用于渲染校准状态键盘图。
 
 ### 参数
 
@@ -60,15 +66,119 @@ ServiceKeyboard.getCalibrationStatus()
 
 ### 返回值
 
-• 总体类型：`Promise<{ code: number, calibrate: number, data: number[] }>`
-• 描述：当前类型定义中仍保留返回结构，但该接口暂未开放，调试页仅做占位展示。
+返回对象字段说明：
+
+• `calibrate`: 当前 SDK 记录的校准流程状态，`1` 表示已调用开始校准，`0` 表示未处于开始校准状态或已结束校准
+• `data`: 整张键盘的有效校准状态数组，等同于 `calibrationStatusData`
+• `keyStatusData`: 整张键盘的按键状态数组，仅保留状态值低 4 位；通常 `0` 表示抬起，非 `0` 表示按下
+• `calibrationStatusData`: 整张键盘的有效校准状态数组，来自状态值高 4 位，并包含老固件兼容处理
+• `maxKeyStatus`: 当前最大的按键状态值
+• `maxCalibrationStatus`: 当前最大的校准状态值
+• `pressedCount`: 当前判定为按下状态的按键数量
+• `calibratedCount`: 当前已校准的按键数量
+• `currentRoundCalibratedCount`: 当前本轮已校准的按键数量
+• `total`: 当前布局中参与统计的有效按键数量
+• `details`: 平铺后的按键详情数组，适合表格或列表渲染
+• `layout`: 保留键盘行列结构的二维数组，适合直接渲染键盘图
+
+### details / layout 单项字段说明
+
+`details` 和 `layout` 中的每个有效按键对象都包含以下字段：
+
+• `row`: 行索引，从 `0` 开始
+• `col`: 列索引，从 `0` 开始
+• `keyName`: 按键显示名称
+• `name`: 按键名称，通常与 `keyName` 一致
+• `hid`: 按键 HID，格式如 `0x04`
+• `keyStatus`: 当前按键状态值，只保留低 4 位
+• `calibrationStatus`: 当前有效校准状态值
+• `calibrated`: 是否已校准，`1` 表示已校准，`0` 表示未校准
+• `currentRoundCalibrated`: 本轮是否已校准，`1` 表示本轮已校准，`0` 表示本轮未校准
+• `pressed`: 是否判定为按下，`1` 表示按下，`0` 表示抬起
+
+### 状态值说明
+
+• 按键状态取原始状态值低 4 位，校准状态取原始状态值高 4 位。
+• 新固件中，校准状态的 `0x08` 表示已校准，`0x04` 表示本轮已校准；两个标志都为 1 时，有效校准状态通常为 `0x0c`。
+• 为兼容老固件，如果高 4 位一直为 `0`，但低 4 位返回 `2`，SDK 会按校准成功处理，对外返回有效 `calibrationStatus = 0x0c`、`calibrated = 1`、`currentRoundCalibrated = 1`。
+• `layout` 基于 SDK 映射后的键盘矩阵生成，与 `getADCSample()` 的键盘排布一致。
 
 ### 使用示例
 
 ```javascript
 const status = await ServiceKeyboard.getCalibrationStatus();
 console.log('校准状态:', status);
+console.log('已校准键数:', status.calibratedCount);
+console.log('第一个按键校准状态:', status.details[0]);
 ```
+
+### 示例输出结构
+
+```javascript
+{
+	code: 0,
+	calibrate: 1,
+	data: [0, 12, 12],
+	keyStatusData: [0, 2, 0],
+	calibrationStatusData: [0, 12, 12],
+	maxKeyStatus: 2,
+	maxCalibrationStatus: 12,
+	pressedCount: 1,
+	calibratedCount: 2,
+	currentRoundCalibratedCount: 2,
+	total: 61,
+	details: [
+		{
+			row: 0,
+			col: 0,
+			keyName: 'Esc',
+			name: 'Esc',
+			hid: '0x29',
+			keyStatus: 0,
+			calibrationStatus: 0,
+			calibrated: 0,
+			currentRoundCalibrated: 0,
+			pressed: 0
+		}
+	],
+	layout: [[/* 保留键盘排布的二维数组 */]]
+}
+```
+
+### 轮询示例
+
+```javascript
+await ServiceKeyboard.calibrationStart();
+
+let timer = null;
+
+const pollCalibrationStatus = async () => {
+	try {
+		const snapshot = await ServiceKeyboard.getCalibrationStatus();
+		console.log('已校准键数:', snapshot.calibratedCount);
+		console.log('本轮已校准键数:', snapshot.currentRoundCalibratedCount);
+		// 在这里刷新校准状态键盘图
+	} catch (error) {
+		console.error('读取校准状态失败:', error);
+	}
+};
+
+await pollCalibrationStatus();
+timer = setInterval(pollCalibrationStatus, 150);
+
+// 页面销毁或校准结束时清理
+clearInterval(timer);
+await ServiceKeyboard.calibrationStop();
+```
+
+### 调试工具实操
+
+• 先在调试工具中调用 `init` 完成设备初始化。
+• 在左侧选择 `calibrationStart`。
+• 点击 `调用` 后，调试工具会启动校准流程，并自动定时轮询 `getCalibrationStatus`。
+• 页面中的“校准状态键盘图”会展示每个键的按下状态、已校准状态和本轮校准状态。
+• 实时校准状态只读取按键状态层，不读取 ADC 和行程层；展示节奏与 `getADCSample` 的实时预览保持接近。
+• 不再需要实时预览时，点击 `停止监听`，避免继续轮询设备。
 
 ## 获取键盘行程配置
 
@@ -155,7 +265,7 @@ ServiceKeyboard.getADCSample()
 • `adc`: 当前整张键盘里采集到的最大 ADC 原始值
 • `data`: 整张键盘的 ADC 原始值数组，顺序与固件矩阵顺序一致
 • `journeyData`: 整张键盘的实时行程数组，单位为 `mm`
-• `keyStatusData`: 整张键盘的实时按键状态数组，通常 `0` 表示抬起，非 `0` 表示按下
+• `keyStatusData`: 整张键盘的实时按键状态数组，仅保留状态值低 4 位；通常 `0` 表示抬起，非 `0` 表示按下
 • `maxJourney`: 当前整张键盘里采集到的最大实时行程值，单位为 `mm`
 • `maxKeyStatus`: 当前最大行程对应的按键状态值
 • `pressedCount`: 当前判定为按下状态的按键数量
@@ -174,13 +284,14 @@ ServiceKeyboard.getADCSample()
 • `hid`: 按键 HID，格式如 `0x04`
 • `journey`: 当前实时行程，单位为 `mm`
 • `adc`: 当前 ADC 原始值
-• `keyStatus`: 当前按键状态值
-• `pressed`: 是否判定为按下，等价于 `keyStatus > 0`
+• `keyStatus`: 当前按键状态值，只保留低 4 位
+• `pressed`: 是否判定为按下，等价于低 4 位 `keyStatus > 0`
 
 ### 重点说明
 
 • 这是快照式读取接口，每次调用返回的是“当前这一刻”的整张键盘状态，不会像 `getKeyboardBacklightCustom()` 那样自动持续上报。
 • 如果前端要做实时可视化，建议自行定时轮询，例如每 `100ms` 到 `300ms` 读取一次，具体频率按页面性能和设备负载权衡。
+• 按下或抬起状态只根据状态值低 4 位判断，高 4 位不会参与 `pressed` 判定。
 • `journeyData`、`keyStatusData` 和 `data` 更适合底层调试；如果是做 UI，优先使用已经整理好的 `details` 或 `layout`。
 • `layout` 会保留键盘原始排布，适合直接绘制键盘图；`details` 是平铺结果，适合统计、筛选和表格展示。
 • 在高频轮询场景中，建议页面离开后及时停止定时器，避免持续占用 HID 通道。
