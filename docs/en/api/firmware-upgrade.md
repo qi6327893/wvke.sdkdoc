@@ -2,14 +2,14 @@
 
 ## Overview
 
-`ServiceFirmwareUpgrade` is an independent firmware-upgrade service. The caller first switches the app device into BOOT mode, waits for the device to reboot, selects and opens the BOOT device again, then passes that BOOT device and a `.bin` firmware path to start the formal upgrade. The SDK handles the legacy upgrade flow internally, including signing unlocks, erase, packet writes, CRC verification, and jump-to-app.
+`ServiceFirmwareUpgrade` is an independent firmware-upgrade service. The caller first switches the app device into BOOT mode, waits for the device to reboot, selects and opens the BOOT device again, then passes that BOOT device and a `.bin` firmware path to start the formal upgrade. RF chip upgrades are an exception: the device does not need to enter BOOT mode first, and the opened device can be passed directly to `upgrade()`. The SDK handles the legacy upgrade flow internally, including signing unlocks, erase, packet writes, CRC verification, and jump-to-app.
 
 The service exposes these APIs:
 
 - `firmwareUpgrade.enterBoot(device, options?)`
 - `firmwareUpgrade.upgrade(device, binFilePath, options?)`
 
-The debug tool does not expose extra parameters for `enterBoot`; the SDK internally sends the enter-BOOT report padded to 64 bytes.
+`enterBoot` sends the configured enter-BOOT command. The SDK internally sends the enter-BOOT report padded to 64 bytes.
 
 ## enterBoot
 
@@ -32,13 +32,13 @@ Overall type: `Promise<{ code: number, success: boolean, requiresReconnect: bool
 
 ServiceFirmwareUpgrade.upgrade(device, binFilePath, options?)
 
-Brief: Upgrade firmware for a reconnected and opened BOOT device.
+Brief: Upgrade firmware for a reconnected and opened BOOT device. For RF chip upgrades, the device does not need to enter BOOT mode first; pass the opened device directly to start upgrading.
 
 ### Parameters
 
 | Field | Type | Description | Required |
 |------|------|-------------|----------|
-| device | HIDDevice | An opened BOOT-mode WebHID device. Usually this is the device selected again with `navigator.hid.requestDevice()` after `enterBoot()` | Yes |
+| device | HIDDevice | An opened BOOT-mode WebHID device. Usually this is the device selected again with `navigator.hid.requestDevice()` after `enterBoot()`. For RF chip upgrades, pass the opened device directly | Yes |
 | binFilePath | string \| Blob | Firmware `.bin` path or browser file object. In browsers, use a site-accessible path, HTTPS URL, or a user-selected `File`. In Node, local file paths and `file://` are also supported | Yes |
 | options | object | Upgrade options, timeout settings, and progress callback | No |
 
@@ -92,6 +92,7 @@ const firmwareUpgrade = new ServiceFirmwareUpgrade();
 await firmwareUpgrade.enterBoot(device);
 
 // The device reboots into BOOT mode. Select and open the BOOT device again with getDevices-style filters.
+// RF chip upgrades do not require enterBoot; pass the opened device directly to upgrade().
 const [bootDevice] = await navigator.hid.requestDevice({ filters });
 if (!bootDevice.opened) {
 	await bootDevice.open();
@@ -132,7 +133,7 @@ await firmwareUpgrade.upgrade(bootDevice, '/firmware/example.bin', {
 
 In the SDK debug page, use the General Custom Upgrade group in three steps:
 
-1. Under `Getting Started / Device Initialization`, call keyboard `getDevices` and `init`, then click `enterBoot` so the device enters BOOT and reboots automatically.
+1. Under `Getting Started / Device Initialization`, call keyboard `getDevices` and `init`, then click `enterBoot` so the device enters BOOT mode and reboots automatically.
 2. After the reboot, click `connectBootDevice`; the debug page uses getDevices-style filters when selecting the BOOT device in the browser prompt.
 3. Click `upgrade`; the debug page uses the BOOT device from step 2 and displays upgrade progress.
 

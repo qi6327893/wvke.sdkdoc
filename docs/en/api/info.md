@@ -25,7 +25,8 @@ This method does not require parameters and is usually used after a successful c
 | RunMode | number | Running mode | 0 |
 | SN | string | Device serial number | "2493C45353E0A336" |
 | Version | string | Firmware version | "004" |
-| ConnectMode | number | Connection mode | 16 |
+| ConnectMode | number | Connection mode: `0` wired, `1`/`2`/`3` Bluetooth channels 1/2/3, `4` 2.4G | 4 |
+| RFVer | number | RF chip version, using only the low byte | 2 |
 | CheckNum | string | Check value | "00000000" |
 
 Example return structure:
@@ -37,7 +38,8 @@ Example return structure:
 	"RunMode": 0,
 	"SN": "2493C45353E0A336",
 	"Version": "004",
-	"ConnectMode": 16,
+	"ConnectMode": 4,
+	"RFVer": 2,
 	"CheckNum": "00000000"
 }
 ```
@@ -601,7 +603,7 @@ async function updateGamepadCurveOptions() {
 
 ServiceKeyboard.getGamepadLinearCurve()
 
-Brief description: Gets the current gamepad linear curve and returns A, B, C, and D point values in millimeters.
+Brief description: Gets the current gamepad linear curve and returns A, B, C, and D travel values plus their response precision values.
 
 ### Parameters
 
@@ -609,16 +611,20 @@ This method does not require any parameters.
 
 ### Return Value
 
-• Overall type: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+• Overall type: `Promise<{ code: number, pointA: number, pointAValue: number, pointB: number, pointBValue: number, pointC: number, pointCValue: number, pointD: number, pointDValue: number }>`
 • Description: Returns a `Promise` that resolves to the current gamepad linear-curve data.
 
 | Field | Type | Description | Example |
 |------|------|------|------|
 | code | number | API status code. `0` means success. | 0 |
 | pointA | number | Point A in mm. | 0.1 |
+| pointAValue | number | Point A response precision value, from 0 to 255. | 20 |
 | pointB | number | Point B in mm. | 0.2 |
+| pointBValue | number | Point B response precision value, from 0 to 255. | 60 |
 | pointC | number | Point C in mm. | 3.0 |
+| pointCValue | number | Point C response precision value, from 0 to 255. | 200 |
 | pointD | number | Point D in mm. | 3.3 |
+| pointDValue | number | Point D response precision value, from 0 to 255. | 255 |
 
 ### Example
 
@@ -637,20 +643,24 @@ async function fetchGamepadLinearCurve() {
 
 ServiceKeyboard.setGamepadLinearCurve(curve)
 
-Brief description: Sets the current gamepad linear curve using A, B, C, and D point values in millimeters.
+Brief description: Sets the current gamepad linear curve using A, B, C, and D travel values plus their response precision values.
 
 ### Parameters
 
 | Field | Type | Description | Required |
 |------|------|------|----------|
 | curve.pointA | string \| number | Point A in mm. | Yes |
+| curve.pointAValue | string \| number | Point A response precision value, from 0 to 255. Defaults to 20. | No |
 | curve.pointB | string \| number | Point B in mm. | Yes |
+| curve.pointBValue | string \| number | Point B response precision value, from 0 to 255. Defaults to 60. | No |
 | curve.pointC | string \| number | Point C in mm. | Yes |
+| curve.pointCValue | string \| number | Point C response precision value, from 0 to 255. Defaults to 200. | No |
 | curve.pointD | string \| number | Point D in mm. | Yes |
+| curve.pointDValue | string \| number | Point D response precision value, from 0 to 255. Defaults to 255. | No |
 
 ### Return Value
 
-• Overall type: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+• Overall type: `Promise<{ code: number, pointA: number, pointAValue: number, pointB: number, pointBValue: number, pointC: number, pointCValue: number, pointD: number, pointDValue: number }>`
 
 ### Example
 
@@ -659,9 +669,13 @@ async function updateGamepadLinearCurve() {
 	try {
 		const result = await ServiceKeyboard.setGamepadLinearCurve({
 			pointA: 0.1,
+			pointAValue: 20,
 			pointB: 0.2,
+			pointBValue: 60,
 			pointC: 3.0,
+			pointCValue: 200,
 			pointD: 3.3,
+			pointDValue: 255,
 		});
 		console.log('Set gamepad linear curve result:', result);
 	} catch (error) {

@@ -2,14 +2,14 @@
 
 ## 概览
 
-`ServiceFirmwareUpgrade` 是独立的通用自定义升级服务。业务侧先把 App 设备切到 BOOT 模式，等待设备自动重启后重新选择并打开 BOOT 设备，再传入 BOOT 设备和 `.bin` 文件路径开始正式升级。SDK 内部会完成旧升级流程中的签名解锁、擦除、分包写入、CRC 校验和跳转 App。
+`ServiceFirmwareUpgrade` 是独立的通用自定义升级服务。业务侧先把 App 设备切到 BOOT 模式，等待设备自动重启后重新选择并打开 BOOT 设备，再传入 BOOT 设备和 `.bin` 文件路径开始正式升级。升级 RF 芯片时不需要设备先进入 BOOT，可以直接传入已打开设备调用 `upgrade()` 开始升级。SDK 内部会完成旧升级流程中的签名解锁、擦除、分包写入、CRC 校验和跳转 App。
 
 当前公开接口：
 
 - `firmwareUpgrade.enterBoot(device, options?)`
 - `firmwareUpgrade.upgrade(device, binFilePath, options?)`
 
-调试工具中的 `enterBoot` 不需要填写额外参数；进入 BOOT 的 HID 报告长度由 SDK 内部固定按 64 字节发送。
+`enterBoot` 会按协议配置发送进入 BOOT 命令，HID 报告长度由 SDK 内部固定按 64 字节发送。
 
 ## enterBoot
 
@@ -32,13 +32,13 @@ ServiceFirmwareUpgrade.enterBoot(device, options?)
 
 ServiceFirmwareUpgrade.upgrade(device, binFilePath, options?)
 
-简述：升级一个已重新连接并打开的 BOOT 设备固件。
+简述：升级一个已重新连接并打开的 BOOT 设备固件；升级 RF 芯片时无需先进入 BOOT，可直接传入已打开设备开始升级。
 
 ### 参数
 
 | 字段 | 类型 | 说明 | 必填 |
 |------|------|------|------|
-| device | HIDDevice | 已打开的 BOOT 模式 WebHID 设备。通常是在 `enterBoot()` 后重新调用 `navigator.hid.requestDevice()` 获取并打开的设备 | 是 |
+| device | HIDDevice | 已打开的 BOOT 模式 WebHID 设备。通常是在 `enterBoot()` 后重新调用 `navigator.hid.requestDevice()` 获取并打开的设备；升级 RF 芯片时可直接传入已打开设备 | 是 |
 | binFilePath | string \| Blob | `.bin` 固件路径或浏览器文件对象。浏览器环境支持当前站点可访问路径、HTTPS URL，以及用户通过文件选择框选择的 `File`；Node 环境还支持本地文件路径和 `file://` | 是 |
 | options | object | 升级选项、超时配置和进度回调 | 否 |
 
@@ -92,6 +92,7 @@ const firmwareUpgrade = new ServiceFirmwareUpgrade();
 await firmwareUpgrade.enterBoot(device);
 
 // 设备会重启进入 BOOT 模式，需要按 getDevices 同源 filters 重新选择并打开 BOOT 设备。
+// 如果升级 RF 芯片，无需执行 enterBoot，可直接将已打开设备传给 upgrade()。
 const [bootDevice] = await navigator.hid.requestDevice({ filters });
 if (!bootDevice.opened) {
 	await bootDevice.open();
@@ -132,7 +133,7 @@ await firmwareUpgrade.upgrade(bootDevice, '/firmware/example.bin', {
 
 在 SDK 调试页面中，通用自定义升级分组按三步执行：
 
-1. 在“准备开始 / 初始化设备”中先调用键盘 `getDevices` 和 `init`，再点击 `enterBoot`，让设备进入 BOOT 并自动重启。
+1. 在“准备开始 / 初始化设备”中先调用键盘 `getDevices` 和 `init`，再点击 `enterBoot` 让设备进入 BOOT 并自动重启。
 2. 设备重启后点击 `connectBootDevice`，调试页会按 `getDevices` 同源 filters 在浏览器弹窗里重新选择 BOOT 设备。
 3. 点击 `upgrade`，调试页会使用第 2 步连接到的 BOOT 设备正式升级，并显示升级进度。
 

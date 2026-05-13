@@ -25,7 +25,8 @@ keyboard.getDevicesInfo()
 | RunMode | number | 运行模式 | 0 |
 | SN | string | 设备序列号 | "2493C45353E0A336" |
 | Version | string | 固件版本号 | "004" |
-| ConnectMode | number | 连接模式 | 16 |
+| ConnectMode | number | 连接模式：`0` 有线，`1`/`2`/`3` 分别为蓝牙通道 1/2/3，`4` 为 2.4G | 4 |
+| RFVer | number | RF 芯片版本号，只取低位字节 | 2 |
 | CheckNum | string | 校验值 | "00000000" |
 
 示例返回结构：
@@ -37,7 +38,8 @@ keyboard.getDevicesInfo()
   "RunMode": 0,
   "SN": "2493C45353E0A336",
   "Version": "004",
-  "ConnectMode": 16,
+  "ConnectMode": 4,
+  "RFVer": 2,
   "CheckNum": "00000000"
 }
 ```
@@ -601,7 +603,7 @@ async function updateGamepadCurveOptions() {
 
 ServiceKeyboard.getGamepadLinearCurve()
 
-简要描述: 获取当前手柄线性曲线，返回 A、B、C、D 四个曲线点的毫米值。
+简要描述: 获取当前手柄线性曲线，返回 A、B、C、D 四个曲线点的行程值和响应精度值。
 
 ### 参数
 
@@ -609,16 +611,20 @@ ServiceKeyboard.getGamepadLinearCurve()
 
 ### 返回值
 
-• 总体类型: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+• 总体类型: `Promise<{ code: number, pointA: number, pointAValue: number, pointB: number, pointBValue: number, pointC: number, pointCValue: number, pointD: number, pointDValue: number }>`
 • 描述: 返回一个 `Promise`，解析为当前手柄线性曲线数据。
 
 | 字段 | 类型 | 描述 | 示例 |
 |------|------|------|------|
 | code | number | 接口调用状态码，`0` 表示成功。 | 0 |
 | pointA | number | A 点，单位 mm。 | 0.1 |
+| pointAValue | number | A 点响应精度值，范围 0 到 255。 | 20 |
 | pointB | number | B 点，单位 mm。 | 0.2 |
+| pointBValue | number | B 点响应精度值，范围 0 到 255。 | 60 |
 | pointC | number | C 点，单位 mm。 | 3.0 |
+| pointCValue | number | C 点响应精度值，范围 0 到 255。 | 200 |
 | pointD | number | D 点，单位 mm。 | 3.3 |
+| pointDValue | number | D 点响应精度值，范围 0 到 255。 | 255 |
 
 ### 使用示例
 
@@ -637,20 +643,24 @@ async function fetchGamepadLinearCurve() {
 
 ServiceKeyboard.setGamepadLinearCurve(curve)
 
-简要描述: 设置当前手柄线性曲线，传入 A、B、C、D 四个曲线点的毫米值。
+简要描述: 设置当前手柄线性曲线，传入 A、B、C、D 四个曲线点的行程值和响应精度值。
 
 ### 参数
 
 | 字段 | 类型 | 描述 | 是否必需 |
 |------|------|------|----------|
 | curve.pointA | string \| number | A 点，单位 mm。 | 是 |
+| curve.pointAValue | string \| number | A 点响应精度值，范围 0 到 255，默认 20。 | 否 |
 | curve.pointB | string \| number | B 点，单位 mm。 | 是 |
+| curve.pointBValue | string \| number | B 点响应精度值，范围 0 到 255，默认 60。 | 否 |
 | curve.pointC | string \| number | C 点，单位 mm。 | 是 |
+| curve.pointCValue | string \| number | C 点响应精度值，范围 0 到 255，默认 200。 | 否 |
 | curve.pointD | string \| number | D 点，单位 mm。 | 是 |
+| curve.pointDValue | string \| number | D 点响应精度值，范围 0 到 255，默认 255。 | 否 |
 
 ### 返回值
 
-• 总体类型: `Promise<{ code: number, pointA: number, pointB: number, pointC: number, pointD: number }>`
+• 总体类型: `Promise<{ code: number, pointA: number, pointAValue: number, pointB: number, pointBValue: number, pointC: number, pointCValue: number, pointD: number, pointDValue: number }>`
 
 ### 使用示例
 
@@ -659,9 +669,13 @@ async function updateGamepadLinearCurve() {
   try {
     const result = await ServiceKeyboard.setGamepadLinearCurve({
       pointA: 0.1,
+      pointAValue: 20,
       pointB: 0.2,
+      pointBValue: 60,
       pointC: 3.0,
+      pointCValue: 200,
       pointD: 3.3,
+      pointDValue: 255,
     });
     console.log('设置手柄线性曲线结果:', result);
   } catch (error) {
