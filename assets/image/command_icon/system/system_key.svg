@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect x="4" y="4" width="40" height="40" rx="8" fill="#4f46e5" stroke="#3730a3" stroke-width="2"/>
+  <rect x="12" y="12" width="24" height="24" rx="3" fill="#a5b4fc" stroke="#818cf8" stroke-width="1"/>
+  <text x="24" y="28" font-size="10" fill="#312e81" text-anchor="middle" font-family="Arial">KEY</text>
+</svg>

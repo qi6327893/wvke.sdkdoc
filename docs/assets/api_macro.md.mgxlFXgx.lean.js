@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as t,ae as e}from"./chunks/framework.FQ5RHm_v.js";const c=JSON.parse('{"title":"宏","description":"","frontmatter":{},"headers":[],"relativePath":"api/macro.md","filePath":"api/macro.md"}'),d={name:"api/macro.md"};function h(n,s,l,p,r,k){return a(),t("div",null,[...s[0]||(s[0]=[e("",16)])])}const E=i(d,[["render",h]]);export{c as __pageData,E as default};

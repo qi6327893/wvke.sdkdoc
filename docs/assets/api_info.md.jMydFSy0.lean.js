@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as t,ae as e}from"./chunks/framework.FQ5RHm_v.js";const E=JSON.parse('{"title":"全局功能","description":"","frontmatter":{},"headers":[],"relativePath":"api/info.md","filePath":"api/info.md"}'),n={name:"api/info.md"};function h(l,s,p,d,k,r){return a(),t("div",null,[...s[0]||(s[0]=[e("",291)])])}const c=i(n,[["render",h]]);export{E as __pageData,c as default};
